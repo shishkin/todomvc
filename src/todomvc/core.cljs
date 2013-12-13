@@ -1,57 +1,12 @@
 (ns todomvc
-  (:require [clojure.string :as string]
-            React
+  (:require React
             [om.core :as om]
-            [om.dom :as dom :include-macros true]))
+            [om.dom :as dom :include-macros true]
+            [todomvc.item :as todo-item]))
 
 (def ENTER_KEY 13)
 
 (def app-state (atom {:todos []}))
-
-;; =============================================================================
-;; Todo Item
-
-(defn edit-todo [e {:keys [state data path owner]}]
-  (let [node (get-node owner "editField")]
-    (.focus node)
-    (.setSelectionRange (.. node -value -length) (.. node -value -length))
-    (swap! state update-in path assoc
-      :edit-text (:title data)
-      :editing true)))
-
-(defn delete-todo [e m]
-  )
-
-(defn toggle-todo [e m]
-  )
-
-(defn save-todo [e {:keys [state data path owner]}]
-  (let [val (.trim (get-node owner "editText"))]
-    (if-not (string/blank? val)
-      (swap! state update-in path assoc
-        :title (:edit-text data)
-        :editing false)
-      ;; destroy case
-      )
-    false))
-
-(defn todo-item [{:keys [completed editing] :as todo} path]
-  (dom/li #js {:className (str (and completed "completed") " "
-                              (and editing "editing"))}
-    (dom/div #js {:className "view"}
-      (dom/input #js {:className "toggle"
-                      :type "checkbox"
-                      :checked (and completed "checked")
-                      :onChange (om/bind toggle-todo path)})
-      (dom/label #js {:onDoubleClick (om/bind edit-todo path)}
-        (:title todo))
-      (dom/button #js {:className "destroy" :onClick (om/bind delte-todo path)})
-      (dom/input #js {:ref "editField"
-                      :className "edit"
-                      :value (:text todo)
-                      :onBlur (om/bind save-todo todo path)
-                      :onChange (om/bind handle-todo-change todo path)
-                      :onKeyDown (om/bind handle-todo-key-down todo path)}))))
 
 ;; =============================================================================
 ;; Todos
