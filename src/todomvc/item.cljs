@@ -10,46 +10,49 @@
 ;; =============================================================================
 ;; Todo Item
 
-(defn handle-submit [e {:keys [data] :as todo}]
-  (let [val (.trim (get-node owner "editText"))]
+(defn handle-submit [e todo owner]
+  (let [val (.trim (dom/get-node todo "editText"))
+        opts (om/get-opts owner)]
     (if-not (string/blank? val)
       (do
-        ((-> data :handlers :on-save) val)
-        (om/update! todo assoc :title (:edit-text data)))
-      ((-> data :handlers :on-destroy)))
+        ((:on-save opts) val)
+        (om/set! todo :title (:edit-text data)))
+      ((:on-destroy opts)))
     false))
 
-(defn handle-edit [e {:keys [data] :as todo}]
+(defn handle-edit [e todo owner]
   ((-> data :handlers :on-edit) 
     (fn []
-      (let [node (get-node owner "editField")]
+      (let [node (dom/get-node owner "editField")]
         (.focus node)
         (.setSelectionRange (.. node -value -length) (.. node -value -length)))))
-  (om/update! todo assoc :edit-text (:title data)))
+  (om/set! todo :edit-text (:title todo)))
 
-(defn handle-key-down [e {:keys [data] :as todo}]
+(defn handle-key-down [e todo]
   (if (identical? (.-keyCode e) ESCAPE_KEY)
-    (om/update! todo assoc :edit-text (:title data))
-    (handle-submit)))
+    (om/set! todo :edit-text (:title todo))
+    (handle-submit e todo)))
 
 (defn handle-change [e todo]
-  (om/update! todo assoc :edit-text (.. e -target -value)))
+  (om/set! todo :edit-text (.. e -target -value)))
 
-(defn todo-item [{:keys [completed editing] :as todo} path]
-  (dom/component
-    (dom/li #js {:className (str (and completed "completed") " "
-                                 (and editing "editing"))}
-      (dom/div #js {:className "view"}
-        (dom/input #js {:className "toggle"
-                        :type "checkbox"
-                        :checked (and completed "checked")
-                        :onChange ((-> todo :handlers :on-toggle))})
-        (dom/label #js {:onDoubleClick (om/bind handle-edit todo path)}
-          (:title todo))
-        (dom/button #js {:className "destroy" :onClick (om/bind delete-todo todo path)})
-        (dom/input #js {:ref "editField"
-                        :className "edit"
-                        :value (:edit-text todo)
-                        :onBlur (om/bind handle-submit todo path)
-                        :onChange (om/bind handle-todo-change todo path)
-                        :onKeyDown (om/bind handle-todo-key-down todo path)})))))
+(defn todo-item [{:keys [completed editing] :as todo}]
+  (reify
+    IRender
+    (-render [_ owner]
+      (dom/li #js {:className (str (and completed "completed") " "
+                                (and editing "editing"))}
+        (dom/div #js {:className "view"}
+          (dom/input #js {:className "toggle"
+                           :type "checkbox"
+                           :checked (and completed "checked")
+                           :onChange (:on-change (get-opts owner))})
+          (dom/label #js {:onDoubleClick #(handle-edit % todo owner)}
+            (:title todo))
+          (dom/button #js {:className "destroy" :onClick (om/bind delete-todo todo)})
+          (dom/input #js {:ref "editField"
+                           :className "edit"
+                           :value (:edit-text todo)
+                           :onBlur #(handle-submit % todo owner)
+                           :onChange #(handle-change % todo)
+                           :onKeyDown (om/bind handle-key-down todo)}))))))
