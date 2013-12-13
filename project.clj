@@ -1,4 +1,4 @@
-(defproject react-cljs "0.1.0-SNAPSHOT"
+(defproject todomvc-om "0.1.0-SNAPSHOT"
   :description "FIXME: write this!"
   :url "http://example.com/FIXME"
 
@@ -18,17 +18,18 @@
                 :output-dir "out"
                 :optimizations :none
                 :source-map true
-                :foreign-libs [{:file "reactjs/react.js"
+                :foreign-libs [{:file "om/react.js"
                                 :provides ["React"]}]
-                :externs ["reactjs/externs/react.js"]}}
+                :externs ["om/externs/react.js"]}}
              {:id "release"
               :source-paths ["src"]
               :compiler {
                 :output-to "app.js"
                 :optimizations :advanced
                 :pretty-print false
-                :foreign-libs [{:file "reactjs/react.js"
+                :output-wrapper false
+                :foreign-libs [{:file "om/react.js"
                                 :provides ["React"]}]
-                :externs ["reactjs/externs/react.js"]
+                :externs ["om/externs/react.js"]
                 :closure-warnings
                 {:non-standard-jsdoc :off}}}]})
