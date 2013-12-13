@@ -1,4 +1,4 @@
-(defproject todomvc-om "0.1.0-SNAPSHOT"
+(defproject todomvc "0.1.0-SNAPSHOT"
   :description "FIXME: write this!"
   :url "http://example.com/FIXME"
 

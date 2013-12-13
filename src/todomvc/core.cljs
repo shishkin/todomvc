@@ -1,5 +1,6 @@
 (ns todomvc
-  (:require React
+  (:require [clojure.string :as string]
+            React
             [om.core :as om]
             [om.dom :as dom :include-macros true]))
 
@@ -10,14 +11,29 @@
 ;; =============================================================================
 ;; Todo Item
 
-(defn edit-todo [e m])
+(defn edit-todo [e {:keys [state data path owner]}]
+  (let [node (get-node owner "editField")]
+    (.focus node)
+    (.setSelectionRange (.. node -value -length) (.. node -value -length))
+    (swap! state update-in path assoc
+      :edit-text (:title data)
+      :editing true)))
 
-(defn delete-todo [e m])
-
-(defn toggle-todo [e m])
-
-(defn save-todo [e m]
+(defn delete-todo [e m]
   )
+
+(defn toggle-todo [e m]
+  )
+
+(defn save-todo [e {:keys [state data path owner]}]
+  (let [val (.trim (get-node owner "editText"))]
+    (if-not (string/blank? val)
+      (swap! state update-in path assoc
+        :title (:edit-text data)
+        :editing false)
+      ;; destroy case
+      )
+    false))
 
 (defn todo-item [{:keys [completed editing] :as todo} path]
   (dom/li #js {:className (str (and completed "completed") " "
@@ -33,9 +49,9 @@
       (dom/input #js {:ref "editField"
                       :className "edit"
                       :value (:text todo)
-                      :onBlur (om/bind save-todo path)
-                      :onChange (om/bind handle-todo-change path)
-                      :onKeyDown (om/bind handle-todo-key-down path)}))))
+                      :onBlur (om/bind save-todo todo path)
+                      :onChange (om/bind handle-todo-change todo path)
+                      :onKeyDown (om/bind handle-todo-key-down todo path)}))))
 
 ;; =============================================================================
 ;; Todos
@@ -89,7 +105,7 @@
                #js {:ref "newField"
                     :id "new-todo"
                     :placeholder "What needs to be done?"
-                    :onKeyDown (om/bind handle-new-todo-keydown path)})
+                    :onKeyDown (om/bind handle-new-todo-keydown data path)})
                (om/render main data path :todos)
                (om/render footer data path)])))
     js/document.body))
