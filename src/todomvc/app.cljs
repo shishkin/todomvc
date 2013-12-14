@@ -82,7 +82,7 @@
     (into [] (remove :completed (:todos app)))))
 
 (defn todo-app []
-  (let [[toggle destroy edit save clear cancel :as cs] (take 6 (repeat chan))
+  (let [[toggle destroy edit save clear cancel :as cs] (take 6 (repeatedly chan))
         chans (zipmap [:toggle :destroy :edit :save :clear :cancel] cs)]
     (om/root
       app-state
