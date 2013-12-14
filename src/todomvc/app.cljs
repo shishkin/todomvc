@@ -1,7 +1,9 @@
 (ns todomvc.app
-  (:require [om.core :as om]
+  (:require-macros [cljs.core.async.macros :refer [go alt!]])
+  (:require [cljs.core.async :refer [put! >! <! chan]]
+            [om.core :as om]
             [om.dom :as dom :include-macros true]
-            [todomvc.utils :refer [pluralize now]]
+            [todomvc.utils :refer [pluralize now guid]]
             [todomvc.item :as todo-item]))
 
 (def ENTER_KEY 13)
@@ -19,7 +21,7 @@
 (defn handle-new-todo-keydown [e app owner]
   (when (not (identical? (.-which e) ENTER_KEY))
     (om/update! app [:todos] conj
-      {:id (uuid)
+      {:id (guid)
        :title (.-value (dom/get-node owner "newField"))
        :completed false})))
 
@@ -31,7 +33,7 @@
                       :onChange #(toggle-all % todos)})
       (dom/ul #js {:id "todo-list"}
         (into-array
-          (map #(om/render todo-item todos path [%] chans)
+          (map #(om/render todos [%] chans :id)
             todos (range (count todos))))))))
 
 (defn footer [{:keys [todos] :as app} opts]
@@ -46,8 +48,8 @@
       (dom/footer #js {:id "footer"}
         (dom/span #js {:id "todo-count"}
           (dom/strong nil (count todos))
-          (str " " (pluralize active "item") " " left))
-        (dom/ul #js {:id filters}
+          (str " " (pluralize active "item") " left"))
+        (dom/ul #js {:id "filters"}
           (dom/li nil
             (dom/a #js {:href "#/" :className (selected showing)}
               "All"))
@@ -72,7 +74,7 @@
               (while true
                 (alt!
                   toggle ([v])
-                  destroy ([v])
+                  destroy ([v] )
                   edit ([v])
                   save ([v])
                   clear ([v])

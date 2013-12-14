@@ -53,8 +53,8 @@
               (:title todo))
             (dom/button #js {:className "destroy" :onClick #(delete-todo % todo)})
             (dom/input #js {:ref "editField"
-                             :className "edit"
-                             :value (:edit-text todo)
-                             :onBlur #(handle-submit % todo m)
-                             :onChange #(handle-change % todo m)
-                             :onKeyDown (om/bind handle-key-down todo)})))))))
+                            :className "edit"
+                            :value (:edit-text todo)
+                            :onBlur #(handle-submit % todo m)
+                            :onChange #(handle-change % todo m)
+                            :onKeyDown (om/bind handle-key-down todo)})))))))

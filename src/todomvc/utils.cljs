@@ -1,4 +1,8 @@
-(ns todomvc.utils)
+(ns todomvc.utils
+  (:import [goog.ui IdGenerator]))
+
+(defn guid []
+  (IdGenerator/getNextUniqueId))
 
 (defn now []
   (js/Date.))
