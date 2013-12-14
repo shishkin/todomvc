@@ -1,7 +1,7 @@
 (ns todomvc.app
   (:require [om.core :as om]
             [om.dom :as dom :include-macros true]
-            [todomvc.utils :as utils]
+            [todomvc.utils :refer [pluralize now]]
             [todomvc.item :as todo-item]))
 
 (def ENTER_KEY 13)
@@ -34,27 +34,34 @@
           (map #(om/render todo-item todos path [%] chans)
             todos (range (count todos))))))))
 
-(defn footer [{:keys [todos] :as app} {:keys [active]}]
-  (dom/component
-    (dom/footer #js {:id "footer"}
-      (dom/span #js {:id "todo-count"}
-        (dom/strong nil (count todos))
-        (str " " (util/pluralize active "item") " " left))
-      (dom/ul #js {:id filters}
-        (dom/li nil
-          (dom/a #js {:href "#/" :className "all"}
-            "All"))
-        (dom/li nil
-          (dom/a #js {:href "#/active" :className "active"}
-            "Active"))
-        (dom/li nil
-          (dom/a #js {:href "#/completed" :className "completed"}
-            "Completed"))
-        ()))))
+(defn footer [{:keys [todos] :as app} opts]
+  (let [{:keys [active completed showing chans]} opts
+        clear-button (when (pos? completed)
+                       (dom/buttton
+                         #js {:id "clear-completed"
+                              :onClick #(put! (:clear chans) (now))}
+                         (str "Clear completed " completed)))
+        selected (zipmap [:all :active :completed] (repeat "select"))]
+    (dom/component
+      (dom/footer #js {:id "footer"}
+        (dom/span #js {:id "todo-count"}
+          (dom/strong nil (count todos))
+          (str " " (pluralize active "item") " " left))
+        (dom/ul #js {:id filters}
+          (dom/li nil
+            (dom/a #js {:href "#/" :className (selected showing)}
+              "All"))
+          (dom/li nil
+            (dom/a #js {:href "#/active" :className (selected showing)}
+              "Active"))
+          (dom/li nil
+            (dom/a #js {:href "#/completed" :className (selected showing)}
+              "Completed"))
+          clear-button)))))
 
 (defn todo-app []
-  (let [[toggle destroy edit save cancel :as cs] (take 5 (repeat chan))
-        chans (zipmap [:toggle :destroy :edit :save :cancel] cs)]
+  (let [[toggle destroy edit save clear cancel :as cs] (take 6 (repeat chan))
+        chans (zipmap [:toggle :destroy :edit :save :clear :cancel] cs)]
     (om/root
       app-state
       (fn [{:keys [todos] :as app}]
@@ -68,6 +75,7 @@
                   destroy ([v])
                   edit ([v])
                   save ([v])
+                  clear ([v])
                   cancel ([v])))))
           dom/IRender
           (-render [_ owner]
@@ -78,11 +86,12 @@
               (dom/div nil
                 (dom/header #js {:id "header"}
                   #js [(dom/h1 nil "todos")
-                        (om/bind dom/input
-                          #js {:ref "newField"
-                               :id "new-todo"
-                               :placeholder "What needs to be done?"
-                               :onKeyDown #(handle-new-todo-keydown % app owner)})
-                        (om/render main app [:todos] chans)
-                        (om/render footer app [] {:active active :completed completed})]))))))
+                       (om/bind dom/input
+                         #js {:ref "newField"
+                              :id "new-todo"
+                              :placeholder "What needs to be done?"
+                              :onKeyDown #(handle-new-todo-keydown % app owner)})
+                       (om/render main app [:todos] chans)
+                       (om/render footer app []
+                         {:active active :completed completed :chans chans})]))))))
       js/document.body)))
