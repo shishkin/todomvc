@@ -108,7 +108,7 @@
               (dom/div nil
                 (dom/header #js {:id "header"}
                   #js [(dom/h1 nil "todos")
-                       (om/bind dom/input
+                       (dom/input
                          #js {:ref "newField"
                               :id "new-todo"
                               :placeholder "What needs to be done?"
@@ -117,3 +117,5 @@
                        (om/render footer app []
                          {:active active :completed completed :chans chans})]))))))
       js/document.body)))
+
+(todo-app)
