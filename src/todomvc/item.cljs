@@ -47,14 +47,14 @@
             (dom/input #js {:className "toggle"
                             :type "checkbox"
                             :checked (and completed "checked")
-                            :onChange (put! (:on-change chans) (now))})
+                            :onChange (fn [_] (put! (:toggle chans) todo))})
             (dom/label #js {:onDoubleClick #(handle-edit % todo owner)}
               (:title todo))
             (dom/button #js {:className "destroy"
-                             :onClick #(delete-todo % todo)})
+                             :onClick (fn [_] (put! (:delete chans) todo))})
             (dom/input #js {:ref "editField"
                             :className "edit"
                             :value (:edit-text todo)
                             :onBlur #(handle-submit % todo m)
                             :onChange #(handle-change % todo)
-                            :onKeyDown (om/bind handle-key-down todo m)})))))))
+                            :onKeyDown #(handle-key-down % todo m)})))))))
