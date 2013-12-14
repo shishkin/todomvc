@@ -61,23 +61,23 @@
               "Completed"))
           clear-button)))))
 
-(defn toggle [todo]
+(defn toggle-todo [todo]
   (om/replace! todo (update-in todo [:completed] #(not %))))
 
-(defn destroy [app {:keys [id]}]
+(defn destroy-todo [app {:keys [id]}]
   (om/replace! app [:todos]
     (into [] (filter #(= (:id %) id) (:todos app)))))
 
-(defn edit [app todo]
+(defn edit-todo [app todo]
   (om/replace! todo [:editing] (:id todo)))
 
-(defn save [todo text]
+(defn save-todo [todo text]
   (om/replace! todo (update-in todo [:title] text)))
 
-(defn cancel [app]
+(defn cancel-action [app]
   (om/replace! app [:editing] nil))
 
-(defn clear [app]
+(defn clear-completed [app]
   (om/replace! app [:todos]
     (into [] (remove :completed (:todos app)))))
 
@@ -93,12 +93,12 @@
             (go
               (while true
                 (alt!
-                  toggle ([todo] (toggle todo))
-                  destroy ([todo] (destroy app todo))
-                  edit ([todo] (edit app todo))
-                  save ([[todo text]] (save todo text))
-                  clear ([v] (clear app))
-                  cancel ([v] (cancel app))))))
+                  toggle ([todo] (toggle-todo todo))
+                  destroy ([todo] (destroy-todo app todo))
+                  edit ([todo] (edit-todo app todo))
+                  save ([[todo text]] (save-todo todo text))
+                  clear ([v] (clear-completed app))
+                  cancel ([v] (cancel-action app))))))
           dom/IRender
           (-render [_ owner]
             (let [active (reduce
