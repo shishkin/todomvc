@@ -61,6 +61,26 @@
               "Completed"))
           clear-button)))))
 
+(defn toggle [todo]
+  (om/replace! todo (update-in todo [:completed] #(not %))))
+
+(defn destroy [app {:keys [id]}]
+  (om/replace! app [:todos]
+    (into [] (filter #(= (:id %) id) (:todos app)))))
+
+(defn edit [app todo]
+  (om/replace! todo [:editing] (:id todo)))
+
+(defn save [todo text]
+  (om/replace! todo (update-in todo [:title] text)))
+
+(defn cancel [app]
+  (om/replace! app [:editing] nil))
+
+(defn clear [app]
+  (om/replace! app [:todos]
+    (into [] (remove :completed (:todos app)))))
+
 (defn todo-app []
   (let [[toggle destroy edit save clear cancel :as cs] (take 6 (repeat chan))
         chans (zipmap [:toggle :destroy :edit :save :clear :cancel] cs)]
@@ -73,12 +93,12 @@
             (go
               (while true
                 (alt!
-                  toggle ([v])
-                  destroy ([v] )
-                  edit ([v])
-                  save ([v])
-                  clear ([v])
-                  cancel ([v])))))
+                  toggle ([todo] (toggle todo))
+                  destroy ([todo] (destroy app todo))
+                  edit ([todo] (edit app todo))
+                  save ([[todo text]] (save todo text))
+                  clear ([v] (clear app))
+                  cancel ([v] (cancel app))))))
           dom/IRender
           (-render [_ owner]
             (let [active (reduce
