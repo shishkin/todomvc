@@ -21,11 +21,14 @@
       (into [] (map #(assoc % :completed checked) todos)))))
 
 (defn handle-new-todo-keydown [e app owner]
-  (when (not (identical? (.-which e) ENTER_KEY))
-    (om/update! app [:todos] conj
-      {:id (guid)
-       :title (.-value (dom/get-node owner "newField"))
-       :completed false})))
+  (when (identical? (.-which e) ENTER_KEY)
+    (let [new-field (dom/get-node owner "newField")]
+      (om/update! app [:todos] conj
+        {:id (guid)
+         :title (.-value new-field)
+         :completed false})
+      (set! (.-value new-field) ""))
+    false))
 
 (defn main [todos chans]
   (dom/component
