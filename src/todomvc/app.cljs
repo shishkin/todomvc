@@ -109,7 +109,7 @@
     dom/IRender
     (-render [_ owner]
       (let [active (reduce
-                     #(if (:completed %2) (inc %1) %1)
+                     #(if (not (:completed %2)) (inc %1) %1)
                      0 todos)
             completed (- (count todos) active)
             chans (dom/get-state owner :chans)]
