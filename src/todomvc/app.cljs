@@ -48,7 +48,8 @@
                          #js {:id "clear-completed"
                               :onClick #(put! (:clear chans) (now))}
                          (str "Clear completed " completed)))
-        selected (zipmap [:all :active :completed] (repeat "select"))]
+        selected (-> (zipmap [:all :active :completed] (repeat ""))
+                     (assoc showing "selected"))]
     (dom/component
       (dom/footer #js {:id "footer"}
         (dom/span #js {:id "todo-count"}
@@ -56,13 +57,13 @@
           (str " " (pluralize active "item") " left"))
         (dom/ul #js {:id "filters"}
           (dom/li nil
-            (dom/a #js {:href "#/" :className (selected showing)}
+            (dom/a #js {:href "#/" :className (selected :all)}
               "All"))
           (dom/li nil
-            (dom/a #js {:href "#/active" :className (selected showing)}
+            (dom/a #js {:href "#/active" :className (selected :active)}
               "Active"))
           (dom/li nil
-            (dom/a #js {:href "#/completed" :className (selected showing)}
+            (dom/a #js {:href "#/completed" :className (selected :completed)}
               "Completed"))
           clear-button)))))
 
@@ -123,7 +124,8 @@
                          :onKeyDown #(handle-new-todo-keydown % app owner)})
                   (om/render main app [:todos] chans)
                   (om/render footer app []
-                    {:active active :completed completed :chans chans})]))))))
+                    {:active active :completed completed
+                     :chans chans :showing :all})]))))))
 
 (om/root app-state todo-app (.getElementById js/document "todoapp"))
 
