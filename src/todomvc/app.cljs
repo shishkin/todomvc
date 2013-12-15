@@ -38,7 +38,14 @@
                       :onChange #(toggle-all % todos)})
       (dom/ul #js {:id "todo-list"}
         (into-array
-          (map #(om/render item/todo-item todos [%] opts :id)
+          (map #(om/render item/todo-item todos
+                  {:path [%]
+                   :opts opts
+                   :key :id
+                   :fn (fn [todo]
+                         (if (= (:id todo) (:editing opts))
+                           (assoc todo :editing true)
+                           todo))})
             (range (count todos))))))))
 
 (defn footer [{:keys [todos] :as app} opts]
@@ -75,7 +82,7 @@
     (into [] (filter #(= (:id %) id) (:todos app)))))
 
 (defn edit-todo [app todo]
-  (om/replace! todo [:editing] (:id todo)))
+  (om/replace! app [:editing] (:id todo)))
 
 (defn save-todo [todo text]
   (om/replace! todo (update-in todo [:title] text)))
@@ -122,11 +129,13 @@
                    :id "new-todo"
                    :placeholder "What needs to be done?"
                    :onKeyDown #(handle-new-todo-keydown % app owner)})
-            (om/render main app [:todos]
-              {:chans chans :editing (:editing app)})
-            (om/render footer app []
-              {:active active :completed completed
-               :chans chans :showing :all})))))))
+            (om/render main app
+              {:path [:todos]
+               :opts {:chans chans :editing (:editing app)}})
+            (om/render footer app
+              {:path []
+               :opts {:active active :completed completed
+                      :chans chans :showing :all}})))))))
 
 (om/root app-state todo-app (.getElementById js/document "todoapp"))
 
