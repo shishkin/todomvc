@@ -22,10 +22,11 @@
     false))
 
 (defn handle-edit [e todo {:keys [owner chans]}]
-  (put! (:on-edit chans) todo)
-  (let [node (dom/get-node owner "editField")]
-    (.focus node)
-    (.setSelectionRange (.. node -value -length) (.. node -value -length)))
+  (go
+    (>! (:edit chans) todo)
+    (let [node (dom/get-node owner "editField")]
+      (.focus node)
+      (.setSelectionRange (.. node -value -length) (.. node -value -length))))
   (om/replace! todo :edit-text (:title todo)))
 
 (defn handle-key-down [e todo opts]
