@@ -4,7 +4,7 @@
             [om.core :as om]
             [om.dom :as dom :include-macros true]
             [todomvc.utils :refer [pluralize now guid]]
-            [todomvc.item :as todo-item]))
+            [todomvc.item :as item]))
 
 (enable-console-print!)
 
@@ -35,7 +35,7 @@
                       :onChange #(toggle-all % todos)})
       (dom/ul #js {:id "todo-list"}
         (into-array
-          (map #(om/render todos [%] chans :id)
+          (map #(om/render item/todo-item todos [%] chans :id)
             todos (range (count todos))))))))
 
 (defn footer [{:keys [todos] :as app} opts]
