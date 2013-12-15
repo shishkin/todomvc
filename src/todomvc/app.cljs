@@ -39,7 +39,7 @@
       (dom/ul #js {:id "todo-list"}
         (into-array
           (map #(om/render item/todo-item todos [%] chans :id)
-            todos (range (count todos))))))))
+            (range (count todos))))))))
 
 (defn footer [{:keys [todos] :as app} opts]
   (let [{:keys [active completed showing chans]} opts
@@ -130,3 +130,4 @@
       #js ["Part of"
            (dom/a #js {:href "http://todomvc.com"} "TodoMVC")]))
   (.getElementById js/document "info"))
+
