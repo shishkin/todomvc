@@ -37,7 +37,7 @@
 (defn handle-change [e todo]
   (om/replace! todo :edit-text (.. e -target -value)))
 
-(defn todo-item [{:keys [completed editing] :as todo} chans]
+(defn todo-item [{:keys [completed editing] :as todo} {:keys [chans editing]}]
   (reify
     dom/IRender
     (-render [_ owner]

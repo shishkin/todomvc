@@ -30,7 +30,7 @@
       (set! (.-value new-field) ""))
     false))
 
-(defn main [todos chans]
+(defn main [todos opts]
   (dom/component
     (dom/section #js {:id "main"}
       (dom/input #js {:id "toggle-all"
@@ -38,7 +38,7 @@
                       :onChange #(toggle-all % todos)})
       (dom/ul #js {:id "todo-list"}
         (into-array
-          (map #(om/render item/todo-item todos [%] chans :id)
+          (map #(om/render item/todo-item todos [%] opts :id)
             (range (count todos))))))))
 
 (defn footer [{:keys [todos] :as app} opts]
@@ -122,7 +122,8 @@
                    :id "new-todo"
                    :placeholder "What needs to be done?"
                    :onKeyDown #(handle-new-todo-keydown % app owner)})
-            (om/render main app [:todos] chans)
+            (om/render main app [:todos]
+              {:chans chans :editing (:editing app)})
             (om/render footer app []
               {:active active :completed completed
                :chans chans :showing :all})))))))
