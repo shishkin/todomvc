@@ -1,6 +1,6 @@
 (ns todomvc.item
   (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [cljs.core.async :refer [>! <! put! alts!]]
+  (:require [cljs.core.async :refer [>! <! put!]]
             [todomvc.utils :refer [now]]
             [clojure.string :as string]
             [om.core :as om]
@@ -42,7 +42,7 @@
     (-render [_ owner]
       (let [m {:owner owner :chans chans}]
         (dom/li #js {:className (str (and completed "completed") " "
-                                  (and editing "editing"))}
+                                     (and editing "editing"))}
           (dom/div #js {:className "view"}
             (dom/input #js {:className "toggle"
                             :type "checkbox"
@@ -51,7 +51,7 @@
             (dom/label #js {:onDoubleClick #(handle-edit % todo owner)}
               (:title todo))
             (dom/button #js {:className "destroy"
-                             :onClick (fn [_] (put! (:delete chans) todo))})
+                             :onClick (fn [_] (put! (:destroy chans) todo))})
             (dom/input #js {:ref "editField"
                             :className "edit"
                             :value (:edit-text todo)
