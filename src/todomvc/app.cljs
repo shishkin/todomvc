@@ -39,7 +39,7 @@
 (defn footer [{:keys [todos] :as app} opts]
   (let [{:keys [active completed showing chans]} opts
         clear-button (when (pos? completed)
-                       (dom/buttton
+                       (dom/button
                          #js {:id "clear-completed"
                               :onClick #(put! (:clear chans) (now))}
                          (str "Clear completed " completed)))
