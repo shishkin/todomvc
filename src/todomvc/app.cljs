@@ -91,7 +91,7 @@
     dom/IWillMount
     (-will-mount [_ owner]
       (let [[toggle destroy edit save clear cancel :as cs]
-             (take 6 (repeatedly chan))]
+            (take 6 (repeatedly chan))]
         (dom/set-state! owner :chans
           (zipmap [:toggle :destroy :edit :save :clear :cancel] cs))
         (go
