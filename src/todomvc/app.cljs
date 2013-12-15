@@ -64,8 +64,8 @@
               "Active"))
           (dom/li nil
             (dom/a #js {:href "#/completed" :className (selected :completed)}
-              "Completed"))
-          clear-button)))))
+              "Completed")))
+        clear-button))))
 
 (defn toggle-todo [todo]
   (om/replace! todo (update-in todo [:completed] #(not %))))
