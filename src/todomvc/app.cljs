@@ -6,6 +6,8 @@
             [todomvc.utils :refer [pluralize now guid]]
             [todomvc.item :as todo-item]))
 
+(enable-console-print!)
+
 (def ENTER_KEY 13)
 
 (def app-state (atom {:todos []}))
