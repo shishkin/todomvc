@@ -51,7 +51,7 @@
                             :type "checkbox"
                             :checked (and completed "checked")
                             :onChange (fn [_] (put! (:toggle chans) todo))})
-            (dom/label #js {:onDoubleClick #(handle-edit % todo owner)}
+            (dom/label #js {:onDoubleClick #(handle-edit % todo m)}
               (:title todo))
             (dom/button #js {:className "destroy"
                              :onClick (fn [_] (put! (:destroy chans) todo))})
