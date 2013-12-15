@@ -17,7 +17,7 @@
     (if-not (string/blank? val)
       (go
         (>! (:save chans) [todo val])
-        (om/replace! todo :title (:edit-text todo)))
+        (om/replace! todo [:title] (:edit-text todo)))
       (put! (:destroy chans) todo))
     false))
 
@@ -27,23 +27,25 @@
     (let [node (dom/get-node owner "editField")]
       (.focus node)
       (.setSelectionRange (.. node -value -length) (.. node -value -length))))
-  (om/replace! todo :edit-text (:title todo)))
+  (om/replace! todo [:edit-text] (:title todo)))
 
 (defn handle-key-down [e todo opts]
   (if (identical? (.-keyCode e) ESCAPE_KEY)
-    (om/replace! todo :edit-text (:title todo))
+    (om/replace! todo [:edit-text] (:title todo))
     (handle-submit e todo opts)))
 
 (defn handle-change [e todo]
-  (om/replace! todo :edit-text (.. e -target -value)))
+  (om/replace! todo [:edit-text] (.. e -target -value)))
 
-(defn todo-item [{:keys [completed editing] :as todo} {:keys [chans editing]}]
+(defn todo-item [{:keys [id completed] :as todo} {:keys [chans editing]}]
   (reify
     dom/IRender
     (-render [_ owner]
-      (let [m {:owner owner :chans chans}]
-        (dom/li #js {:className (str (and completed "completed") " "
-                                     (and editing "editing"))}
+      (let [m {:owner owner :chans chans}
+            classes (cond-> []
+                      completed (conj "completed")
+                      (= id editing) (conj "editing"))]
+        (dom/li #js {:className (string/join classes " ")}
           (dom/div #js {:className "view"}
             (dom/input #js {:className "toggle"
                             :type "checkbox"
