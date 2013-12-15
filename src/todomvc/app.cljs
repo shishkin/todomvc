@@ -3,7 +3,7 @@
   (:require [cljs.core.async :refer [put! >! <! chan]]
             [om.core :as om]
             [om.dom :as dom :include-macros true]
-            [todomvc.utils :refer [pluralize now guid]]
+            [todomvc.utils :refer [pluralize now guid store]]
             [todomvc.item :as item]))
 
 (enable-console-print!)
@@ -101,6 +101,9 @@
               save ([[todo text]] (save-todo todo text))
               clear ([v] (clear-completed app))
               cancel ([v] (cancel-action app))))))
+      dom/IDidUpdate
+      (-did-update [_ _ _ _ _]
+        (store "todos" app))
       dom/IRender
       (-render [_ owner]
         (let [active (reduce

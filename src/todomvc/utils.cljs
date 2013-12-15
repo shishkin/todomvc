@@ -1,5 +1,5 @@
 (ns todomvc.utils
-  (:require [clojure.reader :as reader])
+  (:require [cljs.reader :as reader])
   (:import [goog.ui IdGenerator]))
 
 (defn guid []
@@ -17,7 +17,7 @@
   ([ns] (store ns nil))
   ([ns edn]
     (if-not (nil? edn)
-      (.setItem js/localStorage (str edn))
+      (.setItem js/localStorage ns (str edn))
       (let [s (.getItem js/localStorage ns)]
         (if-not (nil? s)
           (reader/read-string s)
