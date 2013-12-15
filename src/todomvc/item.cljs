@@ -45,7 +45,7 @@
             classes (cond-> []
                       completed (conj "completed")
                       (= id editing) (conj "editing"))]
-        (dom/li #js {:className (string/join classes " ")}
+        (dom/li #js {:className (string/join " " classes)}
           (dom/div #js {:className "view"}
             (dom/input #js {:className "toggle"
                             :type "checkbox"
