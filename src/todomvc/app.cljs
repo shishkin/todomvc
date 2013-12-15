@@ -119,9 +119,9 @@
             (dom/h1 nil "todos")
             (dom/input
               #js {:ref "newField"
-                    :id "new-todo"
-                    :placeholder "What needs to be done?"
-                    :onKeyDown #(handle-new-todo-keydown % app owner)})
+                   :id "new-todo"
+                   :placeholder "What needs to be done?"
+                   :onKeyDown #(handle-new-todo-keydown % app owner)})
             (om/render main app [:todos] chans)
             (om/render footer app []
               {:active active :completed completed
