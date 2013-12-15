@@ -81,41 +81,47 @@
   (om/replace! app [:todos]
     (into [] (remove :completed (:todos app)))))
 
-(defn todo-app []
+(defn todo-app [{:keys [todos] :as app}]
   (let [[toggle destroy edit save clear cancel :as cs] (take 6 (repeatedly chan))
         chans (zipmap [:toggle :destroy :edit :save :clear :cancel] cs)]
-    (om/root
-      app-state
-      (fn [{:keys [todos] :as app}]
-        (reify
-          dom/IWillMount
-          (-will-mount [_ _]
-            (go
-              (while true
-                (alt!
-                  toggle ([todo] (toggle-todo todo))
-                  destroy ([todo] (destroy-todo app todo))
-                  edit ([todo] (edit-todo app todo))
-                  save ([[todo text]] (save-todo todo text))
-                  clear ([v] (clear-completed app))
-                  cancel ([v] (cancel-action app))))))
-          dom/IRender
-          (-render [_ owner]
-            (let [active (reduce
-                           #(if (:completed %2) (inc %1) %1)
-                           0 todos)
-                  completed (- (count todos) active)]
-              (dom/div nil
-                (dom/header #js {:id "header"}
-                  #js [(dom/h1 nil "todos")
-                       (dom/input
-                         #js {:ref "newField"
-                              :id "new-todo"
-                              :placeholder "What needs to be done?"
-                              :onKeyDown #(handle-new-todo-keydown % app owner)})
-                       (om/render main app [:todos] chans)
-                       (om/render footer app []
-                         {:active active :completed completed :chans chans})]))))))
-      js/document.body)))
+    (reify
+      dom/IWillMount
+      (-will-mount [_ _]
+        (go
+          (while true
+            (alt!
+              toggle ([todo] (toggle-todo todo))
+              destroy ([todo] (destroy-todo app todo))
+              edit ([todo] (edit-todo app todo))
+              save ([[todo text]] (save-todo todo text))
+              clear ([v] (clear-completed app))
+              cancel ([v] (cancel-action app))))))
+      dom/IRender
+      (-render [_ owner]
+        (let [active (reduce
+                       #(if (:completed %2) (inc %1) %1)
+                       0 todos)
+              completed (- (count todos) active)]
+          (dom/div nil
+            (dom/header #js {:id "header"}
+              #js [(dom/h1 nil "todos")
+                    (dom/input
+                      #js {:ref "newField"
+                           :id "new-todo"
+                           :placeholder "What needs to be done?"
+                           :onKeyDown #(handle-new-todo-keydown % app owner)})
+                   (om/render main app [:todos] chans)
+                   (om/render footer app []
+                     {:active active :completed completed :chans chans})])))))))
 
-(todo-app)
+(om/root app-state todo-app (.getElementById js/document "todoapp"))
+
+(dom/render
+  (dom/div nil
+    (dom/p nil "Double-click to edit a todo")
+    (dom/p nil
+      (dom/a #js {:href "http://github.com/swannodette"}))
+    (dom/p nil
+      #js ["Part of"
+           (dom/a #js {:href "http://todomvc.com"} "TodoMVC")]))
+  (.getElementById js/document "info"))
