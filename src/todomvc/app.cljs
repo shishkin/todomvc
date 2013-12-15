@@ -116,16 +116,16 @@
             chans (dom/get-state owner :chans)]
         (dom/div nil
           (dom/header #js {:id "header"}
-            #js [(dom/h1 nil "todos")
-                  (dom/input
-                    #js {:ref "newField"
-                         :id "new-todo"
-                         :placeholder "What needs to be done?"
-                         :onKeyDown #(handle-new-todo-keydown % app owner)})
-                  (om/render main app [:todos] chans)
-                  (om/render footer app []
-                    {:active active :completed completed
-                     :chans chans :showing :all})]))))))
+            (dom/h1 nil "todos")
+            (dom/input
+              #js {:ref "newField"
+                    :id "new-todo"
+                    :placeholder "What needs to be done?"
+                    :onKeyDown #(handle-new-todo-keydown % app owner)})
+            (om/render main app [:todos] chans)
+            (om/render footer app []
+              {:active active :completed completed
+               :chans chans :showing :all})))))))
 
 (om/root app-state todo-app (.getElementById js/document "todoapp"))
 
