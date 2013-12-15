@@ -2,7 +2,7 @@
   (:import [goog.ui IdGenerator]))
 
 (defn guid []
-  (IdGenerator/getNextUniqueId))
+  (.getNextUniqueId (.getInstance IdGenerator)))
 
 (defn now []
   (js/Date.))
