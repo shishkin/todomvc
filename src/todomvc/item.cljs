@@ -13,12 +13,12 @@
 ;; Todo Item
 
 (defn handle-submit [e todo {:keys [owner chans]}]
-  (let [val (.trim (dom/get-node todo "editText"))]
+  (let [val (.trim (dom/get-node owner "editText"))]
     (if-not (string/blank? val)
       (go
-        (>! (:on-save chans) [todo val])
+        (>! (:save chans) [todo val])
         (om/replace! todo :title (:edit-text todo)))
-      (put! (:on-destroy chans) (:id todo)))
+      (put! (:destroy chans) todo))
     false))
 
 (defn handle-edit [e todo {:keys [owner chans]}]
