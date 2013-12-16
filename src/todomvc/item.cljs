@@ -31,9 +31,11 @@
       (om/replace! todo [:edit-text] (:title todo)))))
 
 (defn handle-key-down [e todo opts]
-  (if (identical? (.-keyCode e) ESCAPE_KEY)
-    (om/replace! todo [:edit-text] (:title todo))
-    (handle-submit e todo opts)))
+  (let [kc (.-keyCode e)]
+    (if (identical? kc ESCAPE_KEY)
+      (om/replace! todo [:edit-text] (:title todo))
+      (if (identical? kc ENTER_KEY)
+        (handle-submit e todo opts)))))
 
 (defn handle-change [e todo]
   (om/replace! todo [:edit-text] (.. e -target -value)))
