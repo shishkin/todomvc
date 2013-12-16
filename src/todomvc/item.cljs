@@ -34,7 +34,9 @@
 (defn handle-key-down [e todo {:keys [owner] :as opts}]
   (let [kc (.-keyCode e)]
     (if (identical? kc ESCAPE_KEY)
-      (dom/set-state! owner [:edit-text] (:title todo))
+      (do
+        (dom/set-state! owner [:edit-text] (:title todo))
+        (put! (:comm opts) [:cancel todo]))
       (if (identical? kc ENTER_KEY)
         (handle-submit e todo opts)))))
 
