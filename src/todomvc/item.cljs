@@ -13,7 +13,7 @@
 ;; Todo Item
 
 (defn handle-submit [e todo {:keys [owner comm]}]
-  (let [val (.trim (dom/get-node owner "editText"))]
+  (let [val (.trim (:edit-text todo))]
     (if-not (string/blank? val)
       (go
         (>! comm [:save [todo val]])
