@@ -13,7 +13,7 @@
 ;; Todo Item
 
 (defn handle-submit [e todo {:keys [owner comm]}]
-  (let [edit-text (dom/get-state owner :edit-text)
+  (let [edit-text (dom/get-state owner [:edit-text])
         val (.trim edit-text)]
     (if-not (string/blank? val)
       (go
@@ -29,17 +29,17 @@
       (>! comm [:edit todo])
       (.focus node)
       (.setSelectionRange node (.. node -value -length) (.. node -value -length))
-      (dom/set-state! owner :edit-text (:title todo)))))
+      (dom/set-state! owner [:edit-text] (:title todo)))))
 
 (defn handle-key-down [e todo {:keys [owner] :as opts}]
   (let [kc (.-keyCode e)]
     (if (identical? kc ESCAPE_KEY)
-      (dom/set-state! owner :edit-text (:title todo))
+      (dom/set-state! owner [:edit-text] (:title todo))
       (if (identical? kc ENTER_KEY)
         (handle-submit e todo opts)))))
 
 (defn handle-change [e todo owner]
-  (dom/set-state! owner :edit-text (.. e -target -value)))
+  (dom/set-state! owner [:edit-text] (.. e -target -value)))
 
 (defn todo-item [{:keys [id title editing completed] :as todo} {:keys [comm]}]
   (reify
@@ -61,7 +61,7 @@
             (dom/button #js {:className "destroy"
                              :onClick (fn [_] (put! comm [:destroy todo]))}))
           (dom/input #js {:ref "editField" :className "edit"
-                          :value (dom/get-state owner :edit-text)
+                          :value (dom/get-state owner [:edit-text])
                           :onBlur #(handle-submit % todo m)
                           :onChange #(handle-change % todo owner)
                           :onKeyDown #(handle-key-down % todo m)}))))))
