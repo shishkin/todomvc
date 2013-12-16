@@ -13,11 +13,12 @@
 ;; Todo Item
 
 (defn handle-submit [e todo {:keys [owner comm]}]
-  (let [val (.trim (:edit-text todo))]
+  (let [edit-text (om/get-state owner :edit-text)
+        val (.trim edit-text)]
     (if-not (string/blank? val)
       (go
         (>! comm [:save [todo val]])
-        (om/replace! todo [:title] (:edit-text todo)))
+        (om/replace! todo [:title] edit-text))
       (put! comm [:destroy todo]))
     false))
 
@@ -28,20 +29,23 @@
       (>! comm [:edit todo])
       (.focus node)
       (.setSelectionRange node (.. node -value -length) (.. node -value -length))
-      (om/replace! todo [:edit-text] (:title todo)))))
+      (om/set-state! owner :edit-text (:title todo)))))
 
-(defn handle-key-down [e todo opts]
+(defn handle-key-down [e todo {:keys [owner] :as opts}]
   (let [kc (.-keyCode e)]
     (if (identical? kc ESCAPE_KEY)
-      (om/replace! todo [:edit-text] (:title todo))
+      (om/set-state! owner :edit-text (:title todo))
       (if (identical? kc ENTER_KEY)
         (handle-submit e todo opts)))))
 
-(defn handle-change [e todo]
-  (om/replace! todo [:edit-text] (.. e -target -value)))
+(defn handle-change [e todo owner]
+  (om/set-state! owner :edit-text (.. e -target -value)))
 
-(defn todo-item [{:keys [id editing completed] :as todo} {:keys [comm]}]
+(defn todo-item [{:keys [id title editing completed] :as todo} {:keys [comm]}]
   (reify
+    dom/IInitState
+    (-init-state [_ _]
+      {:edit-text (:title title)})
     dom/IRender
     (-render [_ owner]
       (let [m {:owner owner :comm comm}
@@ -56,7 +60,8 @@
             (dom/label #js {:onDoubleClick #(handle-edit % todo m)} (:title todo))
             (dom/button #js {:className "destroy"
                              :onClick (fn [_] (put! comm [:destroy todo]))}))
-          (dom/input #js {:ref "editField" :className "edit" :value (:edit-text todo)
+          (dom/input #js {:ref "editField" :className "edit"
+                          :value (om/get-state owner :edit-text)
                           :onBlur #(handle-submit % todo m)
-                          :onChange #(handle-change % todo)
+                          :onChange #(handle-change % todo owner)
                           :onKeyDown #(handle-key-down % todo m)}))))))
