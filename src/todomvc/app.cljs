@@ -115,9 +115,9 @@
       (store "todos" app))
     dom/IRender
     (-render [_ owner]
-      (let [active (reduce #(if (not (:completed %2)) (inc %1) %1) 0 todos)
+      (let [active    (count (filter :completed todos))
             completed (- (count todos) active)
-            comm (dom/get-state owner :comm)]
+            comm      (dom/get-state owner :comm)]
         (dom/div nil
           (dom/header #js {:id "header"}
             (dom/h1 nil "todos")

@@ -12,18 +12,18 @@
 ;; =============================================================================
 ;; Todo Item
 
-(defn handle-submit [e todo {:keys [owner chans]}]
+(defn handle-submit [e todo {:keys [owner comm]}]
   (let [val (.trim (dom/get-node owner "editText"))]
     (if-not (string/blank? val)
       (go
-        (>! (:save chans) [todo val])
+        (>! comm [:save [todo val]])
         (om/replace! todo [:title] (:edit-text todo)))
-      (put! (:destroy chans) todo))
+      (put! comm [:destroy todo]))
     false))
 
-(defn handle-edit [e todo {:keys [owner chans]}]
+(defn handle-edit [e todo {:keys [owner comm]}]
   (go
-    (>! (:edit chans) todo)
+    (>! comm [:edit todo])
     (let [node (dom/get-node owner "editField")]
       (.focus node)
       (.setSelectionRange node (.. node -value -length) (.. node -value -length))))
@@ -37,27 +37,23 @@
 (defn handle-change [e todo]
   (om/replace! todo [:edit-text] (.. e -target -value)))
 
-(defn todo-item [{:keys [id completed] :as todo} {:keys [chans editing]}]
+(defn todo-item [{:keys [id completed] :as todo} {:keys [comm editing]}]
   (reify
     dom/IRender
     (-render [_ owner]
-      (let [m {:owner owner :chans chans}
+      (let [m {:owner owner :comm comm}
             classes (cond-> []
                       completed (conj "completed")
                       (= id editing) (conj "editing"))]
         (dom/li #js {:className (string/join " " classes)}
           (dom/div #js {:className "view"}
-            (dom/input #js {:className "toggle"
-                            :type "checkbox"
+            (dom/input #js {:className "toggle" :type "checkbox"
                             :checked (and completed "checked")
-                            :onChange (fn [_] (put! (:toggle chans) todo))})
-            (dom/label #js {:onDoubleClick #(handle-edit % todo m)}
-              (:title todo))
+                            :onChange (fn [_] (put! comm [:toggle todo]))})
+            (dom/label #js {:onDoubleClick #(handle-edit % todo m)} (:title todo))
             (dom/button #js {:className "destroy"
-                             :onClick (fn [_] (put! (:destroy chans) todo))})
-            (dom/input #js {:ref "editField"
-                            :className "edit"
-                            :value (:edit-text todo)
+                             :onClick (fn [_] (put! comm [:destroy todo]))})
+            (dom/input #js {:ref "editField" :className "edit" :value (:edit-text todo)
                             :onBlur #(handle-submit % todo m)
                             :onChange #(handle-change % todo)
                             :onKeyDown #(handle-key-down % todo m)})))))))
