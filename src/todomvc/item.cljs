@@ -22,12 +22,13 @@
     false))
 
 (defn handle-edit [e todo {:keys [owner comm]}]
+  ;; NOTE: we have to grab the node here? - David
   (let [node (dom/get-node owner "editField")]
     (go
       (>! comm [:edit todo])
       (.focus node)
-      (.setSelectionRange node (.. node -value -length) (.. node -value -length))))
-  (om/replace! todo [:edit-text] (:title todo)))
+      (.setSelectionRange node (.. node -value -length) (.. node -value -length))
+      (om/replace! todo [:edit-text] (:title todo)))))
 
 (defn handle-key-down [e todo opts]
   (if (identical? (.-keyCode e) ESCAPE_KEY)
@@ -37,14 +38,14 @@
 (defn handle-change [e todo]
   (om/replace! todo [:edit-text] (.. e -target -value)))
 
-(defn todo-item [{:keys [id completed] :as todo} {:keys [comm editing]}]
+(defn todo-item [{:keys [id editing completed] :as todo} {:keys [comm]}]
   (reify
     dom/IRender
     (-render [_ owner]
       (let [m {:owner owner :comm comm}
             classes (cond-> []
                       completed (conj "completed")
-                      (= id editing) (conj "editing"))]
+                      editing   (conj "editing"))]
         (dom/li #js {:className (string/join " " classes)}
           (dom/div #js {:className "view"}
             (dom/input #js {:className "toggle" :type "checkbox"
