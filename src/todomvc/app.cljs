@@ -10,7 +10,7 @@
 
 (def ENTER_KEY 13)
 
-(def app-state (atom {:todos []}))
+(def app-state (atom {:showing :all :todos []}))
 
 ;; =============================================================================
 ;; Main and Footer Components
@@ -32,8 +32,8 @@
                            todo))})
             (range (count todos))))))))
 
-(defn footer [{:keys [todos] :as app} opts]
-  (let [{:keys [active completed showing comm]} opts
+(defn footer [{:keys [showing todos] :as app} opts]
+  (let [{:keys [count completed comm]} opts
         clear-button (when (pos? completed)
                        (dom/button
                          #js {:id "clear-completed"
@@ -44,8 +44,8 @@
     (dom/component
       (dom/footer #js {:id "footer"}
         (dom/span #js {:id "todo-count"}
-          (dom/strong nil (count todos))
-          (str " " (pluralize active "item") " left"))
+          (dom/strong nil count)
+          (str " " (pluralize count "item") " left"))
         (dom/ul #js {:id "filters"}
           (dom/li nil
             (dom/a #js {:href "#/" :className (sel :all)} "All"))
@@ -114,7 +114,7 @@
       (store "todos" app))
     dom/IRender
     (-render [_ owner]
-      (let [active    (count (filter :completed todos))
+      (let [active    (count (remove :completed todos))
             completed (- (count todos) active)
             comm      (dom/get-state owner :comm)]
         (dom/div nil
@@ -127,8 +127,7 @@
             (om/render main app
               {:path [:todos] :opts {:comm comm :editing (:editing app)}})
             (om/render footer app
-              {:path [] :opts {:active active :completed completed
-                               :comm comm :showing :all}})))))))
+              {:path [] :opts {:count active :completed completed :comm comm}})))))))
 
 (om/root app-state todo-app (.getElementById js/document "todoapp"))
 
