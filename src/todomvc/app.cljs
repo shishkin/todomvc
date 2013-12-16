@@ -20,15 +20,12 @@
 (defn main [todos opts]
   (dom/component
     (dom/section #js {:id "main"}
-      (dom/input #js {:id "toggle-all"
-                      :type "checkbox"
+      (dom/input #js {:id "toggle-all" :type "checkbox"
                       :onChange #(toggle-all % todos)})
       (dom/ul #js {:id "todo-list"}
         (into-array
           (map #(om/render item/todo-item todos
-                  {:path [%]
-                   :opts opts
-                   :key :id
+                  {:path [%] :opts opts :key :id
                    :fn (fn [todo]
                          (if (= (:id todo) (:editing opts))
                            (assoc todo :editing true)
@@ -36,14 +33,14 @@
             (range (count todos))))))))
 
 (defn footer [{:keys [todos] :as app} opts]
-  (let [{:keys [active completed showing chans]} opts
+  (let [{:keys [active completed showing comm]} opts
         clear-button (when (pos? completed)
                        (dom/button
                          #js {:id "clear-completed"
-                              :onClick #(put! (:clear chans) (now))}
+                              :onClick #(put! comm [:clear (now)])}
                          (str "Clear completed " completed)))
-        selected (-> (zipmap [:all :active :completed] (repeat ""))
-                     (assoc showing "selected"))]
+        sel (-> (zipmap [:all :active :completed] (repeat ""))
+                (assoc showing "selected"))]
     (dom/component
       (dom/footer #js {:id "footer"}
         (dom/span #js {:id "todo-count"}
@@ -51,14 +48,11 @@
           (str " " (pluralize active "item") " left"))
         (dom/ul #js {:id "filters"}
           (dom/li nil
-            (dom/a #js {:href "#/" :className (selected :all)}
-              "All"))
+            (dom/a #js {:href "#/" :className (sel :all)} "All"))
           (dom/li nil
-            (dom/a #js {:href "#/active" :className (selected :active)}
-              "Active"))
+            (dom/a #js {:href "#/active" :className (sel :active)} "Active"))
           (dom/li nil
-            (dom/a #js {:href "#/completed" :className (selected :completed)}
-              "Completed")))
+            (dom/a #js {:href "#/completed" :className (sel :completed)} "Completed")))
         clear-button))))
 
 ;; =============================================================================
@@ -73,9 +67,7 @@
   (when (identical? (.-which e) ENTER_KEY)
     (let [new-field (dom/get-node owner "newField")]
       (om/update! app [:todos] conj
-        {:id (guid)
-         :title (.-value new-field)
-         :completed false})
+        {:id (guid) :title (.-value new-field) :completed false})
       (set! (.-value new-field) ""))
     false))
 
@@ -96,51 +88,48 @@
   (om/replace! app [:editing] nil))
 
 (defn clear-completed [app]
-  (om/replace! app [:todos]
-    (into [] (remove :completed (:todos app)))))
+  (om/replace! app [:todos] (into [] (remove :completed (:todos app)))))
+
+(defn handle-event [app [type val]]
+  (case type
+    :toggle  (toggle-todo val)
+    :destroy (destroy-todo app val)
+    :edit    (edit-todo app val)
+    :save    (let [[todo text] val]
+               (save-todo todo text))
+    :clear   (clear-completed app)
+    :cancel  (cancel-action app)
+    nil))
 
 (defn todo-app [{:keys [todos] :as app}]
   (reify
     dom/IWillMount
     (-will-mount [_ owner]
-      (let [[toggle destroy edit save clear cancel :as cs]
-            (take 6 (repeatedly chan))]
-        (dom/set-state! owner :chans
-          (zipmap [:toggle :destroy :edit :save :clear :cancel] cs))
-        (go
-          (while true
-            (alt!
-              toggle ([todo] (toggle-todo todo))
-              destroy ([todo] (destroy-todo app todo))
-              edit ([todo] (edit-todo app todo))
-              save ([[todo text]] (save-todo todo text))
-              clear ([v] (clear-completed app))
-              cancel ([v] (cancel-action app)))))))
+      (let [comm (chan)]
+        (dom/set-state! owner :comm comm)
+        (go (while true
+              (let [[e c] (<! comm)]
+                (handle-event app e))))))
     dom/IDidUpdate
     (-did-update [_ _ _ _ _]
       (store "todos" app))
     dom/IRender
     (-render [_ owner]
-      (let [active (reduce
-                     #(if (not (:completed %2)) (inc %1) %1)
-                     0 todos)
+      (let [active (reduce #(if (not (:completed %2)) (inc %1) %1) 0 todos)
             completed (- (count todos) active)
-            chans (dom/get-state owner :chans)]
+            comm (dom/get-state owner :comm)]
         (dom/div nil
           (dom/header #js {:id "header"}
             (dom/h1 nil "todos")
             (dom/input
-              #js {:ref "newField"
-                   :id "new-todo"
+              #js {:ref "newField" :id "new-todo"
                    :placeholder "What needs to be done?"
                    :onKeyDown #(handle-new-todo-keydown % app owner)})
             (om/render main app
-              {:path [:todos]
-               :opts {:chans chans :editing (:editing app)}})
+              {:path [:todos] :opts {:comm comm :editing (:editing app)}})
             (om/render footer app
-              {:path []
-               :opts {:active active :completed completed
-                      :chans chans :showing :all}})))))))
+              {:path [] :opts {:active active :completed completed
+                               :comm comm :showing :all}})))))))
 
 (om/root app-state todo-app (.getElementById js/document "todoapp"))
 
