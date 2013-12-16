@@ -82,7 +82,7 @@
   (om/replace! app [:editing] (:id todo)))
 
 (defn save-todo [todo text]
-  (om/replace! todo (update-in todo [:title] text)))
+  (om/replace! todo [:title] text))
 
 (defn cancel-action [app]
   (om/replace! app [:editing] nil))
