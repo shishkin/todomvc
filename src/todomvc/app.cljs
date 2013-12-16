@@ -13,22 +13,9 @@
 (def app-state (atom {:todos []}))
 
 ;; =============================================================================
-;; Todos
+;; Main and Footer Components
 
-(defn toggle-all [e todos]
-  (let [checked (.. e -target -checked)]
-    (om/replace! todos
-      (into [] (map #(assoc % :completed checked) todos)))))
-
-(defn handle-new-todo-keydown [e app owner]
-  (when (identical? (.-which e) ENTER_KEY)
-    (let [new-field (dom/get-node owner "newField")]
-      (om/update! app [:todos] conj
-        {:id (guid)
-         :title (.-value new-field)
-         :completed false})
-      (set! (.-value new-field) ""))
-    false))
+(declare toggle-all)
 
 (defn main [todos opts]
   (dom/component
@@ -73,6 +60,24 @@
             (dom/a #js {:href "#/completed" :className (selected :completed)}
               "Completed")))
         clear-button))))
+
+;; =============================================================================
+;; Todos
+
+(defn toggle-all [e todos]
+  (let [checked (.. e -target -checked)]
+    (om/replace! todos
+      (into [] (map #(assoc % :completed checked) todos)))))
+
+(defn handle-new-todo-keydown [e app owner]
+  (when (identical? (.-which e) ENTER_KEY)
+    (let [new-field (dom/get-node owner "newField")]
+      (om/update! app [:todos] conj
+        {:id (guid)
+         :title (.-value new-field)
+         :completed false})
+      (set! (.-value new-field) ""))
+    false))
 
 (defn toggle-todo [todo]
   (om/replace! todo (update-in todo [:completed] #(not %))))
@@ -148,4 +153,3 @@
       #js ["Part of"
            (dom/a #js {:href "http://todomvc.com"} "TodoMVC")]))
   (.getElementById js/document "info"))
-
