@@ -22,9 +22,9 @@
     false))
 
 (defn handle-edit [e todo {:keys [owner comm]}]
-  (go
-    (>! comm [:edit todo])
-    (let [node (dom/get-node owner "editField")]
+  (let [node (dom/get-node owner "editField")]
+    (go
+      (>! comm [:edit todo])
       (.focus node)
       (.setSelectionRange node (.. node -value -length) (.. node -value -length))))
   (om/replace! todo [:edit-text] (:title todo)))
@@ -52,8 +52,8 @@
                             :onChange (fn [_] (put! comm [:toggle todo]))})
             (dom/label #js {:onDoubleClick #(handle-edit % todo m)} (:title todo))
             (dom/button #js {:className "destroy"
-                             :onClick (fn [_] (put! comm [:destroy todo]))})
-            (dom/input #js {:ref "editField" :className "edit" :value (:edit-text todo)
-                            :onBlur #(handle-submit % todo m)
-                            :onChange #(handle-change % todo)
-                            :onKeyDown #(handle-key-down % todo m)})))))))
+                             :onClick (fn [_] (put! comm [:destroy todo]))}))
+          (dom/input #js {:ref "editField" :className "edit" :value (:edit-text todo)
+                          :onBlur #(handle-submit % todo m)
+                          :onChange #(handle-change % todo)
+                          :onKeyDown #(handle-key-down % todo m)}))))))
