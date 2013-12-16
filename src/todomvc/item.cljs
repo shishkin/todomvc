@@ -47,7 +47,7 @@
   (reify
     dom/IInitState
     (-init-state [_ _]
-      {:edit-text (:title title)})
+      {:edit-text title})
     dom/IRender
     (-render [_ owner]
       (let [m {:owner owner :comm comm}
