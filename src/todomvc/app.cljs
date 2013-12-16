@@ -106,7 +106,7 @@
     dom/IWillMount
     (-will-mount [_ owner]
       (let [comm (chan)]
-        (dom/set-state! owner :comm comm)
+        (dom/set-state! owner [:comm] comm)
         (go (while true
               (handle-event app (<! comm))))))
     dom/IDidUpdate
@@ -116,7 +116,7 @@
     (-render [_ owner]
       (let [active    (count (remove :completed todos))
             completed (- (count todos) active)
-            comm      (dom/get-state owner :comm)]
+            comm      (dom/get-state owner [:comm])]
         (dom/div nil
           (dom/header #js {:id "header"}
             (dom/h1 nil "todos")
