@@ -90,7 +90,7 @@
 (defn clear-completed [app]
   (om/replace! app [:todos] (into [] (remove :completed (:todos app)))))
 
-(defn handle-event [app [type val]]
+(defn handle-event [app [type val :as e]]
   (case type
     :toggle  (toggle-todo val)
     :destroy (destroy-todo app val)
@@ -108,8 +108,7 @@
       (let [comm (chan)]
         (dom/set-state! owner :comm comm)
         (go (while true
-              (let [[e c] (<! comm)]
-                (handle-event app e))))))
+              (handle-event app (<! comm))))))
     dom/IDidUpdate
     (-did-update [_ _ _ _ _]
       (store "todos" app))
