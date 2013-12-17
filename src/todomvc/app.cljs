@@ -56,12 +56,12 @@
         (into-array
           (map #(om/build item/todo-item app
                   {:path [:todos %] :opts opts :key :id
-                    :fn (fn [todo]
-                          (cond-> todo
-                            (= (:id todo) (:editing opts))
-                            (assoc :editing true)
-                            (not (visible? todo showing))
-                            (assoc :hidden true)))})
+                   :fn (fn [todo]
+                         (cond-> todo
+                           (= (:id todo) (:editing opts))
+                           (assoc :editing true)
+                           (not (visible? todo showing))
+                           (assoc :hidden true)))})
             (range (count (:todos app)))))))))
 
 (defn footer [{:keys [showing todos]} opts]
