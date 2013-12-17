@@ -1,10 +1,15 @@
 (ns todomvc.app
-  (:require-macros [cljs.core.async.macros :refer [go alt!]])
-  (:require [cljs.core.async :refer [put! <! chan]]
+  (:require-macros [cljs.core.async.macros :refer [go alt!]]
+                   [secretary.macros :refer [defroute]])
+  (:require [goog.events :as events]
+            [cljs.core.async :refer [put! <! chan]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
+            [secretary.core :as secretary]
             [todomvc.utils :refer [pluralize now guid store]]
-            [todomvc.item :as item]))
+            [todomvc.item :as item])
+  (:import [goog History]
+           [goog.history EventType]))
 
 (enable-console-print!)
 
@@ -13,11 +18,38 @@
 (def app-state (atom {:showing :all :todos []}))
 
 ;; =============================================================================
+;; Routing
+
+(defroute "/" []
+  (swap! app-state assoc :showing :all))
+
+(defroute "/active" []
+  (println "active!")
+  (swap! app-state assoc :showing :active))
+
+(defroute "/completed" []
+  (swap! app-state assoc :showing :completed))
+
+(def history (History.))
+
+(events/listen history EventType/NAVIGATE
+  (fn [e] (secretary/dispatch! (.-token e))))
+
+(.setEnabled history true)
+
+;; =============================================================================
 ;; Main and Footer Components
 
 (declare toggle-all)
 
-(defn main [app opts]
+(defn todo-filter [filter]
+  (fn [x]
+    (case = filter
+      :all true
+      :active (not (:completed x))
+      :completed (:completed x))))
+
+(defn main [{:keys [showing] :as app} opts]
   (om/component
     (dom/section #js {:id "main"}
       (dom/input #js {:id "toggle-all" :type "checkbox"
@@ -30,7 +62,7 @@
                          (if (= (:id todo) (:editing opts))
                            (assoc todo :editing true)
                            todo))})
-            (range (count (:todos app)))))))))
+            (range (count (filter #(todo-filter showing) (:todos app))))))))))
 
 (defn footer [{:keys [showing todos]} opts]
   (let [{:keys [count completed comm]} opts
