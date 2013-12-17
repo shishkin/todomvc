@@ -24,7 +24,7 @@
 
 (defn handle-edit [e {:keys [title] :as todo} {:keys [owner comm]}]
   ;; NOTE: we have to grab the node here? - David
-  (let [node (dom/get-node owner "editField")]
+  (let [node (om/get-node owner "editField")]
     (go
       (om/update! todo #(assoc % :edit-text title))
       (.focus node)
