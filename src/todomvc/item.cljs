@@ -42,7 +42,6 @@
         (handle-submit e todo opts)))))
 
 (defn handle-change [e todo owner]
-  (println "handle-change" (.. e -target -value))
   (om/update! todo
     #(assoc % :edit-text (.. e -target -value))))
 
