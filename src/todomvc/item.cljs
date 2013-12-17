@@ -1,9 +1,9 @@
 (ns todomvc.item
   (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [cljs.core.async :refer [>! <! put!]]
+  (:require [cljs.core.async :refer [>! put!]]
             [todomvc.utils :refer [now]]
             [clojure.string :as string]
-            [om.core :as om]
+            [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]))
 
 (def ESCAPE_KEY 27)
@@ -46,7 +46,7 @@
 
 (defn todo-item [{:keys [id title editing completed] :as todo} {:keys [comm]}]
   (reify
-    dom/IRender
+    om/IRender
     (-render [_ owner]
       (let [m {:owner owner :comm comm}
             classes (cond-> []
