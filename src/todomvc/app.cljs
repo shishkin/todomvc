@@ -17,7 +17,7 @@
 
 (declare toggle-all)
 
-(defn main [todos opts]
+(defn main [app opts]
   (dom/component
     (dom/section #js {:id "main"}
       (dom/input #js {:id "toggle-all" :type "checkbox"
@@ -25,7 +25,7 @@
       (dom/ul #js {:id "todo-list"}
         (into-array
           (map #(om/render item/todo-item todos
-                  {:path [%] :opts opts :key :id
+                  {:path [:todos] :opts opts :key :id
                    :fn (fn [todo]
                          (if (= (:id todo) (:editing opts))
                            (assoc todo :editing true)
@@ -101,7 +101,7 @@
 (defn todo-app [{:keys [todos] :as app}]
   (reify
     dom/IWillMount
-    (-will-mount [_ owner]
+    (-will-mount [_ owner ]
       (let [comm (chan)]
         (dom/set-state! owner [:comm] comm)
         (go (while true
@@ -122,7 +122,7 @@
                    :placeholder "What needs to be done?"
                    :onKeyDown #(handle-new-todo-keydown % app owner)})
             (om/render main app
-              {:path [:todos] :opts {:comm comm :editing (:editing app)}})
+              {:path [] :opts {:comm comm :editing (:editing app)}})
             (om/render footer app
               {:path [] :opts {:count active :completed completed :comm comm}})))))))
 
