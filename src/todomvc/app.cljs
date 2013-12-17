@@ -25,7 +25,7 @@
       (dom/ul #js {:id "todo-list"}
         (into-array
           (map #(om/build item/todo-item app
-                  {:path [:todos] :opts opts :key :id
+                  {:path [:todos %] :opts opts :key :id
                    :fn (fn [todo]
                          (if (= (:id todo) (:editing opts))
                            (assoc todo :editing true)

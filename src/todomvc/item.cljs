@@ -61,7 +61,7 @@
             (dom/button #js {:className "destroy"
                              :onClick (fn [_] (put! comm [:destroy todo]))}))
           (dom/input #js {:ref "editField" :className "edit"
-                          :value (or title (:edit-text todo))
+                          :value (or (:edit-text todo) title)
                           :onBlur #(handle-submit % todo m)
                           :onChange #(handle-change % todo owner)
                           :onKeyDown #(handle-key-down % todo m)}))))))
