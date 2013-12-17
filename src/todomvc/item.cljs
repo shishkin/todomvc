@@ -22,26 +22,27 @@
       (put! comm [:destroy todo]))
     false))
 
-(defn handle-edit [e todo {:keys [owner comm]}]
+(defn handle-edit [e {:keys [title] :as todo} {:keys [owner comm]}]
   ;; NOTE: we have to grab the node here? - David
   (let [node (dom/get-node owner "editField")]
     (go
-      (om/replace! todo [:edit-text] (:title todo))
+      (om/update! todo #(assoc % :edit-text title))
       (.focus node)
       (.setSelectionRange node (.. node -value -length) (.. node -value -length))
       (>! comm [:edit todo]))))
 
-(defn handle-key-down [e todo {:keys [owner] :as opts}]
+(defn handle-key-down [e {:keys [title] :as todo} {:keys [owner] :as opts}]
   (let [kc (.-keyCode e)]
     (if (identical? kc ESCAPE_KEY)
       (do
-        (om/replace! todo [:edit-text] (:title todo))
+        (om/update! todo #(assoc % :edit-text title))
         (put! (:comm opts) [:cancel todo]))
       (if (identical? kc ENTER_KEY)
         (handle-submit e todo opts)))))
 
 (defn handle-change [e todo owner]
-  (om/replace! todo [:edit-text] (.. e -target -value)))
+  (om/update! todo
+    #(assoc % :edit-text (.. e -target -value))))
 
 (defn todo-item [{:keys [id title editing completed] :as todo} {:keys [comm]}]
   (reify
@@ -55,7 +56,7 @@
           (dom/div #js {:className "view"}
             (dom/input #js {:className "toggle" :type "checkbox"
                             :checked (and completed "checked")
-                            :onChange (fn [_] (put! comm [:toggle todo]))})
+                            :onChange (fn [_] (om/update! todo [:completed] #(not %)))})
             (dom/label #js {:onDoubleClick #(handle-edit % todo m)} (:title todo))
             (dom/button #js {:className "destroy"
                              :onClick (fn [_] (put! comm [:destroy todo]))}))

@@ -60,8 +60,8 @@
 
 (defn toggle-all [e todos]
   (let [checked (.. e -target -checked)]
-    (om/replace! todos
-      (into [] (map #(assoc % :completed checked) todos)))))
+    (om/update! todos
+      (fn [todos] (into [] (map #(assoc % :completed checked) todos))))))
 
 (defn handle-new-todo-keydown [e app owner]
   (when (identical? (.-which e) ENTER_KEY)
@@ -71,12 +71,9 @@
       (set! (.-value new-field) ""))
     false))
 
-(defn toggle-todo [todo]
-  (om/update! todo [:completed] #(not %)))
-
 (defn destroy-todo [app {:keys [id]}]
-  (om/replace! app [:todos]
-    (into [] (filter #(= (:id %) id) (:todos app)))))
+  (om/update! app [:todos]
+    (fn [todos] (into [] (remove #(= (:id %) id) todos)))))
 
 (defn edit-todo [app todo]
   (om/update! app #(assoc % :editing (:id todo))))
@@ -85,10 +82,11 @@
   (om/update! app #(dissoc % :editing)))
 
 (defn cancel-action [app]
-  (om/udpate! app #(dissoc % :editing)))
+  (om/update! app #(dissoc % :editing)))
 
 (defn clear-completed [app]
-  (om/replace! app [:todos] (into [] (remove :completed (:todos app)))))
+  (om/update! app [:todos]
+    (fn [todos] (into [] (remove :completed todos)))))
 
 (defn handle-event [app [type todo :as e]]
   (case type
@@ -139,4 +137,3 @@
       #js ["Part of"
            (dom/a #js {:href "http://todomvc.com"} "TodoMVC")]))
   (.getElementById js/document "info"))
-
