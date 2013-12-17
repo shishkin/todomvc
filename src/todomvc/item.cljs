@@ -53,7 +53,10 @@
             classes (cond-> []
                       completed (conj "completed")
                       editing   (conj "editing"))]
-        (dom/li #js {:className (string/join " " classes)}
+        (dom/li #js {:className (string/join " " classes)
+                     :style (if (true? (:hidden todo))
+                              #js {:display "none"}
+                              #js {})}
           (dom/div #js {:className "view"}
             (dom/input #js {:className "toggle" :type "checkbox"
                             :checked (and completed "checked")

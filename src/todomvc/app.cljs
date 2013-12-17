@@ -24,7 +24,6 @@
   (swap! app-state assoc :showing :all))
 
 (defroute "/active" []
-  (println "active!")
   (swap! app-state assoc :showing :active))
 
 (defroute "/completed" []
@@ -42,12 +41,11 @@
 
 (declare toggle-all)
 
-(defn todo-filter [filter]
-  (fn [x]
-    (case = filter
-      :all true
-      :active (not (:completed x))
-      :completed (:completed x))))
+(defn visible? [todo filter]
+  (case filter
+    :all true
+    :active (not (:completed todo))
+    :completed (:completed todo)))
 
 (defn main [{:keys [showing] :as app} opts]
   (om/component
@@ -58,11 +56,13 @@
         (into-array
           (map #(om/build item/todo-item app
                   {:path [:todos %] :opts opts :key :id
-                   :fn (fn [todo]
-                         (if (= (:id todo) (:editing opts))
-                           (assoc todo :editing true)
-                           todo))})
-            (range (count (filter #(todo-filter showing) (:todos app))))))))))
+                    :fn (fn [todo]
+                          (cond-> todo
+                            (= (:id todo) (:editing opts))
+                            (assoc :editing true)
+                            (not (visible? todo showing))
+                            (assoc :hidden true)))})
+            (range (count (:todos app)))))))))
 
 (defn footer [{:keys [showing todos]} opts]
   (let [{:keys [count completed comm]} opts
