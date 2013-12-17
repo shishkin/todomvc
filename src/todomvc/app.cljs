@@ -101,6 +101,8 @@
   (reify
     om/IWillMount
     (-will-mount [_ owner]
+      ;; TODO: solve the problem of app not being
+      ;; "up-to-date" here - David
       (let [comm (chan)]
         (om/set-state! owner [:comm] comm)
         (go (while true

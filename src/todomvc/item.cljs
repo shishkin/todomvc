@@ -1,6 +1,6 @@
 (ns todomvc.item
   (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [cljs.core.async :refer [>! put!]]
+  (:require [cljs.core.async :refer [>! put! timeout]]
             [todomvc.utils :refer [now]]
             [clojure.string :as string]
             [om.core :as om :include-macros true]
@@ -12,24 +12,25 @@
 ;; =============================================================================
 ;; Todo Item
 
-(defn handle-submit [e todo {:keys [owner comm]}]
-  (let [edit-text (:edit-text todo)
-        val       (.trim edit-text)]
-    (if-not (string/blank? val)
+(defn handle-submit [e {:keys [edit-text] :as todo} {:keys [ comm]}]
+  (when edit-text
+    (if-not (string/blank? (.trim edit-text))
       (do
         (om/update! todo #(-> % (assoc :title edit-text) (dissoc :edit-text)))
         (put! comm [:save todo]))
-      (put! comm [:destroy todo]))
-    false))
+      (put! comm [:destroy todo])))
+  false)
 
 (defn handle-edit [e {:keys [title] :as todo} {:keys [owner comm]}]
   ;; NOTE: we have to grab the node here? - David
   (let [node (om/get-node owner "editField")]
     (go
-      (om/update! todo #(assoc % :edit-text title))
+      (>! comm [:edit todo])
+      ;; NOTE: Annoying that we have to do this - David
+      (<! (timeout 100))
       (.focus node)
-      (.setSelectionRange node (.. node -value -length) (.. node -value -length))
-      (>! comm [:edit todo]))))
+      (.setSelectionRange node 0 (.. node -value -length)))
+    (om/update! todo #(assoc % :edit-text title))))
 
 (defn handle-key-down [e {:keys [title] :as todo} {:keys [owner] :as opts}]
   (let [kc (.-keyCode e)]
@@ -41,6 +42,7 @@
         (handle-submit e todo opts)))))
 
 (defn handle-change [e todo owner]
+  (println "handle-change" (.. e -target -value))
   (om/update! todo
     #(assoc % :edit-text (.. e -target -value))))
 
