@@ -146,9 +146,9 @@
       (set! render-start (now)))
     om/IDidUpdate
     (did-update [_ _ _ _ _]
+      (store "todos" todos)
       (let [ms (- (.valueOf (now)) (.valueOf render-start))]
-        (set! (.-innerHTML (js/document.getElementById "message")) (str ms "ms")))
-      (store "todos"))
+        (set! (.-innerHTML (js/document.getElementById "message")) (str ms "ms"))))
     om/IRender
     (render [_ owner]
       (let [active    (count (remove :completed todos))
