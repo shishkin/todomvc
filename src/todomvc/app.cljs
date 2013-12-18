@@ -132,7 +132,7 @@
 (defn todo-app [{:keys [todos] :as app}]
   (reify
     om/IWillMount
-    (-will-mount [_ owner]
+    (will-mount [_ owner]
       ;; TODO: solve the problem of app not being
       ;; "up-to-date" here - David
       (let [comm (chan)]
@@ -140,10 +140,10 @@
         (go (while true
               (handle-event app (<! comm))))))
     om/IDidUpdate
-    (-did-update [_ _ _ _ _]
+    (did-update [_ _ _ _ _]
       (store "todos" ))
     om/IRender
-    (-render [_ owner]
+    (render [_ owner]
       (let [active    (count (remove :completed todos))
             completed (- (count todos) active)
             comm      (om/get-state owner [:comm])]
@@ -170,3 +170,4 @@
       #js ["Part of"
            (dom/a #js {:href "http://todomvc.com"} "TodoMVC")]))
   (.getElementById js/document "info"))
+

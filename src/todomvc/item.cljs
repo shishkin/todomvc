@@ -48,7 +48,7 @@
 (defn todo-item [{:keys [id title editing completed] :as todo} {:keys [comm]}]
   (reify
     om/IRender
-    (-render [_ owner]
+    (render [_ owner]
       (let [m {:owner owner :comm comm}
             classes (cond-> []
                       completed (conj "completed")
