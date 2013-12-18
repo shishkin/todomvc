@@ -129,6 +129,8 @@
     :cancel  (cancel-action app)
     nil))
 
+(def render-start nil)
+
 (defn todo-app [{:keys [todos] :as app}]
   (reify
     om/IWillMount
@@ -139,9 +141,14 @@
         (om/set-state! owner [:comm] comm)
         (go (while true
               (handle-event app (<! comm))))))
+    om/IWillUpdate
+    (will-update [_ _ _ _]
+      (set! render-start (now)))
     om/IDidUpdate
     (did-update [_ _ _ _ _]
-      (store "todos" ))
+      (let [ms (- (.valueOf (now)) (.valueOf render-start))]
+        (set! (.-innerHTML (js/document.getElementById "message")) (str ms "ms")))
+      (store "todos"))
     om/IRender
     (render [_ owner]
       (let [active    (count (remove :completed todos))
@@ -171,3 +178,24 @@
            (dom/a #js {:href "http://todomvc.com"} "TodoMVC")]))
   (.getElementById js/document "info"))
 
+;; =============================================================================
+;; Benchmark Stuff
+
+(aset js/window "benchmark1"
+  (fn [e]
+    (dotimes [_ 200]
+      (swap! app-state update-in [:todos] conj
+        {:id (guid) :title "foo" :completed false}))))
+
+(aset js/window "benchmark2"
+  (fn [e]
+    (dotimes [_ 200]
+      (swap! app-state update-in [:todos] conj
+        {:id (guid) :title "foo" :completed false}))
+    (dotimes [_ 5]
+      (swap! app-state update-in [:todos]
+        (fn [todos]
+          (map #(assoc-in % [:completed] not) todos))))
+    (swap! app-state update-in [:todos]
+      (fn [todos]
+        (into [] (remove :completed todos))))))
