@@ -47,11 +47,12 @@
     :active (not (:completed todo))
     :completed (:completed todo)))
 
-(defn main [{:keys [showing] :as app} opts]
+(defn main [{:keys [showing todos] :as app} opts]
   (om/component
     (dom/section #js {:id "main"}
       (dom/input #js {:id "toggle-all" :type "checkbox"
-                      :onChange #(toggle-all % app)})
+                      :onChange #(toggle-all % app)
+                      :checked (every? #(:completed %) todos)})
       (dom/ul #js {:id "todo-list"}
         (into-array
           (map #(om/build item/todo-item app
@@ -70,7 +71,7 @@
                        (dom/button
                          #js {:id "clear-completed"
                               :onClick #(put! comm [:clear (now)])}
-                         (str "Clear completed " completed)))
+                         (str "Clear completed (" completed ")")))
         sel (-> (zipmap [:all :active :completed] (repeat ""))
                 (assoc showing "selected"))]
     (om/component
