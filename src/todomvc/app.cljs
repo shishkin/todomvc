@@ -7,6 +7,7 @@
             [om.dom :as dom :include-macros true]
             [secretary.core :as secretary]
             [todomvc.utils :refer [pluralize now guid store]]
+            [clojure.string :as string]
             [todomvc.item :as item])
   (:import [goog History]
            [goog.history EventType]))
@@ -98,9 +99,10 @@
 (defn handle-new-todo-keydown [e app owner]
   (when (identical? (.-which e) ENTER_KEY)
     (let [new-field (om/get-node owner "newField")]
-      (om/update! app [:todos] conj
-        {:id (guid) :title (.-value new-field) :completed false})
-      (set! (.-value new-field) ""))
+      (when-not (string/blank? (.. new-field -value trim))
+        (om/update! app [:todos] conj
+          {:id (guid) :title (.-value new-field) :completed false})
+        (set! (.-value new-field) "")))
     false))
 
 (defn destroy-todo [app {:keys [id]}]
