@@ -48,9 +48,12 @@
     :active (not (:completed todo))
     :completed (:completed todo)))
 
-(defn main [{:keys [showing] :as app} opts]
+(defn main [{:keys [showing todos] :as app} opts]
   (om/component
-    (dom/section #js {:id "main"}
+    (dom/section #js {:id "main"
+                      :style (if (empty? todos)
+                               #js {:display "none"}
+                               #js {})}
       (dom/input #js {:id "toggle-all" :type "checkbox"
                       :onChange #(toggle-all % app)})
       (dom/ul #js {:id "todo-list"}
@@ -75,7 +78,10 @@
         sel (-> (zipmap [:all :active :completed] (repeat ""))
                 (assoc showing "selected"))]
     (om/component
-      (dom/footer #js {:id "footer"}
+      (dom/footer #js {:id "footer"
+                       :style (if (empty? todos)
+                                #js {:display "none"}
+                                #js {})}
         (dom/span #js {:id "todo-count"}
           (dom/strong nil count)
           (str " " (pluralize count "item") " left"))
