@@ -21,14 +21,8 @@
 ;; =============================================================================
 ;; Routing
 
-(defroute "/" []
-  (swap! app-state assoc :showing :all))
-
-(defroute "/active" []
-  (swap! app-state assoc :showing :active))
-
-(defroute "/completed" []
-  (swap! app-state assoc :showing :completed))
+(defroute "/:filter" []
+  (swap! app-state assoc :showing (keyword filter)))
 
 (def history (History.))
 
