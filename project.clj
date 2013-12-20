@@ -25,7 +25,6 @@
               :source-paths ["src"]
               :compiler {
                 :output-to "app.js"
-                :source-map "app.js.map"
                 :optimizations :advanced
                 :pretty-print false
                 :output-wrapper false
