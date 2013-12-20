@@ -21,7 +21,7 @@
 ;; =============================================================================
 ;; Routing
 
-(defroute "/:filter" []
+(defroute "/:filter" [filter]
   (swap! app-state assoc :showing (keyword filter)))
 
 (def history (History.))
