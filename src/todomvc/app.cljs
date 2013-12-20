@@ -56,7 +56,7 @@
           (map #(om/build item/todo-item app
                   {:path [:todos %] :opts opts :key :id
                    :fn (fn [todo]
-                         (cond-> todo
+                         (cond-> (assoc todo :order %)
                            (= (:id todo) (:editing opts))
                            (assoc :editing true)
                            (not (visible? todo showing))
@@ -97,12 +97,13 @@
     (om/update! app [:todos]
       (fn [todos] (into [] (map #(assoc % :completed checked) todos))))))
 
-(defn handle-new-todo-keydown [e app owner]
+(defn handle-new-todo-keydown [e {:keys [todos] :as app} owner]
   (when (identical? (.-which e) ENTER_KEY)
     (let [new-field (om/get-node owner "newField")]
       (when-not (string/blank? (.. new-field -value trim))
         (om/update! app [:todos] conj
-          {:id (guid) :title (.-value new-field) :completed false})
+          {:id (guid) :title (.-value new-field)
+           :completed false :order (count todos)})
         (set! (.-value new-field) "")))
     false))
 
