@@ -20,7 +20,7 @@
                 :output-dir "out"
                 :optimizations :none
                 :source-map true
-                :externs ["om/externs/react.js"]}}
+                :externs ["react/externs/react.js"]}}
              {:id "release"
               :source-paths ["src"]
               :compiler {
@@ -28,7 +28,7 @@
                 :optimizations :advanced
                 :pretty-print false
                 :output-wrapper false
-                :preamble ["om/react.min.js"]
-                :externs ["om/externs/react.js"]
+                :preamble ["react/react.min.js"]
+                :externs ["react/externs/react.js"]
                 :closure-warnings
                 {:non-standard-jsdoc :off}}}]})
