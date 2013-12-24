@@ -12,11 +12,11 @@
 ;; =============================================================================
 ;; Todo Item
 
-(defn handle-submit [e {:keys [edit-text] :as todo} {:keys [ comm]}]
-  (when edit-text
+(defn handle-submit [e todo {:keys [owner comm]}]
+  (when-let [edit-text (om/get-state owner [:edit-text])]
     (if-not (string/blank? (.trim edit-text))
       (do
-        (om/update! todo #(-> % (assoc :title edit-text) (dissoc :edit-text)))
+        (om/update! todo #(assoc % :title edit-text))
         (put! comm [:save todo]))
       (put! comm [:destroy todo])))
   false)
@@ -30,23 +30,25 @@
       (<! (timeout 100))
       (.focus node)
       (.setSelectionRange node 0 (.. node -value -length)))
-    (om/update! todo #(assoc % :edit-text title))))
+    (om/set-state! owner [:edit-text] title)))
 
 (defn handle-key-down [e {:keys [title] :as todo} {:keys [owner] :as opts}]
   (let [kc (.-keyCode e)]
     (if (identical? kc ESCAPE_KEY)
       (do
-        (om/update! todo #(assoc % :edit-text title))
+        (om/set-state! owner [:edit-text] title)
         (put! (:comm opts) [:cancel todo]))
       (if (identical? kc ENTER_KEY)
         (handle-submit e todo opts)))))
 
 (defn handle-change [e todo owner]
-  (om/update! todo
-    #(assoc % :edit-text (.. e -target -value))))
+  (om/set-state! owner [:edit-text] (.. e -target -value)))
 
 (defn todo-item [{:keys [id title editing completed] :as todo} {:keys [comm]}]
   (reify
+    om/IInitState
+    (init-state [_ owner]
+      {:edit-text title})
     om/IRender
     (render [_ owner]
       (let [m {:owner owner :comm comm}
@@ -65,7 +67,7 @@
             (dom/button #js {:className "destroy"
                              :onClick (fn [_] (put! comm [:destroy todo]))}))
           (dom/input #js {:ref "editField" :className "edit"
-                          :value (or (:edit-text todo) title)
+                          :value (om/get-state owner [:edit-text])
                           :onBlur #(handle-submit % todo m)
                           :onChange #(handle-change % todo owner)
                           :onKeyDown #(handle-key-down % todo m)}))))))
