@@ -101,8 +101,9 @@
     (let [new-field (om/get-node owner "newField")]
       (when-not (string/blank? (.. new-field -value trim))
         (om/update! app [:todos] conj
-          {:id (guid) :title (.-value new-field)
-           :completed false :order (count todos)})
+          {:id (guid)
+           :title (.-value new-field)
+           :completed false})
         (set! (.-value new-field) "")))
     false))
 
