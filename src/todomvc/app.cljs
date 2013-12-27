@@ -51,7 +51,7 @@
                                #js {})}
       (dom/input #js {:id "toggle-all" :type "checkbox"
                       :onChange #(toggle-all % app)
-                      :checked (every? #(:completed %) todos)})
+                      :checked (every? :completed todos)})
       (dom/ul #js {:id "todo-list"}
         (om/build-all item/todo-item todos
           {:opts opts :key :id
