@@ -1,5 +1,4 @@
 (ns todomvc.item
-  (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.core.async :refer [>! put! timeout]]
             [todomvc.utils :refer [now]]
             [clojure.string :as string]
@@ -24,19 +23,19 @@
 (defn handle-edit [e todo {:keys [owner comm]}]
   ;; NOTE: we have to grab the node here? - David
   (let [node (om/get-node owner "editField")]
-    (go
-      (>! comm [:edit todo])
-      ;; NOTE: Annoying that we have to do this - David
-      (<! (timeout 100))
-      (.focus node)
-      (.setSelectionRange node 0 (.. node -value -length)))
-    (om/set-state! owner [:edit-text] (om/read todo [:title]))))
+    (put! comm [:edit todo])
+    (om/set-state! owner [:init-edit] true)
+    (om/read todo [:title]
+      (fn [title]
+        (om/set-state! owner [:edit-text] title)))))
 
 (defn handle-key-down [e todo {:keys [owner] :as opts}]
   (let [kc (.-keyCode e)]
     (if (identical? kc ESCAPE_KEY)
       (do
-        (om/set-state! owner [:edit-text] (om/read todo [:title]))
+        (om/read todo [:title]
+          (fn [title]
+            (om/set-state! owner [:edit-text] title)))
         (put! (:comm opts) [:cancel todo]))
       (if (identical? kc ENTER_KEY)
         (handle-submit e todo opts)))))
@@ -49,6 +48,13 @@
     om/IInitState
     (init-state [_]
       {:edit-text title})
+    om/IDidUpdate
+    (did-update [_ _ _ _]
+      (when (om/get-state owner [:init-edit])
+        (om/set-state! owner [:init-edit] nil)
+        (let [node (om/get-node owner "editField")]
+          (.focus node)
+          (.setSelectionRange node 0 (.. node -value -length)))))
     om/IRender
     (render [_]
       (let [m {:owner owner :comm comm}

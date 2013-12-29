@@ -114,8 +114,9 @@
         (fn [todos] (into [] (remove #(= (:id %) id) todos)))))))
 
 (defn edit-todo [app todo]
-  (let [id (om/read todo [:id])]
-    (om/transact! app #(assoc % :editing id))))
+  (om/read todo [:id]
+    (fn [id]
+      (om/transact! app #(assoc % :editing id)))))
 
 (defn save-todos [app]
   (om/transact! app #(dissoc % :editing)))
