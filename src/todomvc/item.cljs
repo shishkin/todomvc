@@ -44,13 +44,13 @@
 (defn handle-change [e todo owner]
   (om/set-state! owner [:edit-text] (.. e -target -value)))
 
-(defn todo-item [{:keys [id title editing completed] :as todo} {:keys [comm]}]
+(defn todo-item [{:keys [id title editing completed] :as todo} owner {:keys [comm]}]
   (reify
     om/IInitState
-    (init-state [_ owner]
+    (init-state [_]
       {:edit-text title})
     om/IRender
-    (render [_ owner]
+    (render [_]
       (let [m {:owner owner :comm comm}
             classes (cond-> []
                       completed (conj "completed")

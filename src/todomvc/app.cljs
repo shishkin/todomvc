@@ -43,7 +43,7 @@
     :active (not (:completed todo))
     :completed (:completed todo)))
 
-(defn main [{:keys [showing todos] :as app} opts]
+(defn main [{:keys [showing todos] :as app} owner opts]
   (om/component
     (dom/section #js {:id "main"
                       :style (if (empty? todos)
@@ -62,7 +62,7 @@
                    (not (visible? todo showing))
                    (assoc :hidden true)))})))))
 
-(defn footer [{:keys [showing todos]} opts]
+(defn footer [{:keys [showing todos]} owner opts]
   (let [{:keys [count completed comm]} opts
         clear-button (when (pos? completed)
                        (dom/button
@@ -137,10 +137,10 @@
 
 (def render-start nil)
 
-(defn todo-app [{:keys [todos] :as app}]
+(defn todo-app [{:keys [todos] :as app} owner]
   (reify
     om/IWillMount
-    (will-mount [_ owner]
+    (will-mount [_]
       ;; TODO: solve the problem of app not being
       ;; "up-to-date" here - David
       (let [comm (chan)]
@@ -148,15 +148,15 @@
         (go (while true
               (handle-event app (<! comm))))))
     om/IWillUpdate
-    (will-update [_ _ _ _]
+    (will-update [_ _ _]
       (set! render-start (now)))
     om/IDidUpdate
-    (did-update [_ _ _ _ _]
+    (did-update [_ _ _ _]
       (store "todos" todos)
       (let [ms (- (.valueOf (now)) (.valueOf render-start))]
         (set! (.-innerHTML (js/document.getElementById "message")) (str ms "ms"))))
     om/IRender
-    (render [_ owner]
+    (render [_]
       (let [active    (count (remove :completed todos))
             completed (- (count todos) active)
             comm      (om/get-state owner [:comm])]
