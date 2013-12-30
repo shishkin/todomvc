@@ -93,14 +93,14 @@
 
 (defn toggle-all [e app]
   (let [checked (.. e -target -checked)]
-    (om/transact! app [:todos]
+    (om/transact! app :todos
       (fn [todos] (into [] (map #(assoc % :completed checked) todos))))))
 
 (defn handle-new-todo-keydown [e app owner]
   (when (identical? (.-which e) ENTER_KEY)
     (let [new-field (om/get-node owner "newField")]
       (when-not (string/blank? (.. new-field -value trim))
-        (om/transact! app [:todos] conj
+        (om/transact! app :todos conj
           {:id (guid)
            :title (.-value new-field)
            :completed false})
@@ -110,22 +110,22 @@
 (defn destroy-todo [app todo]
   (om/read todo [:id]
     (fn [id]
-      (om/transact! app [:todos]
+      (om/transact! app :todos
         (fn [todos] (into [] (remove #(= (:id %) id) todos)))))))
 
 (defn edit-todo [app todo]
   (om/read todo [:id]
     (fn [id]
-      (om/transact! app #(assoc % :editing id)))))
+      (om/update! app assoc :editing id))))
 
 (defn save-todos [app]
-  (om/transact! app #(dissoc % :editing)))
+  (om/update! app dissoc :editing))
 
 (defn cancel-action [app]
-  (om/transact! app #(dissoc % :editing)))
+  om/update! app dissoc :editing)
 
 (defn clear-completed [app]
-  (om/transact! app [:todos]
+  (om/transact! app :todos
     (fn [todos] (into [] (remove :completed todos)))))
 
 (defn handle-event [app [type todo :as e]]
@@ -146,7 +146,7 @@
       ;; TODO: solve the problem of app not being
       ;; "up-to-date" here - David
       (let [comm (chan)]
-        (om/set-state! owner [:comm] comm)
+        (om/set-state! owner :comm comm)
         (go (while true
               (handle-event app (<! comm))))))
     om/IWillUpdate
@@ -161,7 +161,7 @@
     (render [_]
       (let [active    (count (remove :completed todos))
             completed (- (count todos) active)
-            comm      (om/get-state owner [:comm])]
+            comm      (om/get-state owner :comm)]
         (dom/div nil
           (dom/header #js {:id "header"}
             (dom/h1 nil "todos")
