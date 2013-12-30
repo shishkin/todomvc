@@ -122,7 +122,7 @@
   (om/update! app dissoc :editing))
 
 (defn cancel-action [app]
-  om/update! app dissoc :editing)
+  (om/update! app dissoc :editing))
 
 (defn clear-completed [app]
   (om/transact! app :todos
