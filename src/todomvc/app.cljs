@@ -108,13 +108,13 @@
     false))
 
 (defn destroy-todo [app todo]
-  (om/read todo [:id]
+  (om/read todo :id
     (fn [id]
       (om/transact! app :todos
         (fn [todos] (into [] (remove #(= (:id %) id) todos)))))))
 
 (defn edit-todo [app todo]
-  (om/read todo [:id]
+  (om/read todo :id
     (fn [id]
       (om/update! app assoc :editing id))))
 
