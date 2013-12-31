@@ -53,9 +53,10 @@
     (did-update [_ _ _ _]
       (when (and (:editing todo)
                  (om/get-state owner :needs-focus))
-        (let [node (om/get-node owner "editField")]
+        (let [node (om/get-node owner "editField")
+              len  (.. node -value -length)]
           (.focus node)
-          (.setSelectionRange node (.. node -value -length) (.. node -value -length)))
+          (.setSelectionRange node len len))
         (om/set-state! owner :needs-focus nil)))
     om/IRender
     (render [_]
