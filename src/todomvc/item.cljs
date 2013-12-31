@@ -27,7 +27,7 @@
   (let [node (om/get-node owner "editField")]
     (put! comm [:edit todo])
     (doto owner
-      (om/set-state! :init-edit true)
+      (om/set-state! :needs-focus true)
       (om/set-state! :edit-text (:title todo)))))
 
 (defn key-down [e todo owner comm]
@@ -51,11 +51,12 @@
       {:edit-text (:title todo)})
     om/IDidUpdate
     (did-update [_ _ _ _]
-      (when (om/get-state owner :init-edit)
-        (om/set-state! owner :init-edit nil)
+      (when (and (:editing todo)
+                 (om/get-state owner :needs-focus))
         (let [node (om/get-node owner "editField")]
           (.focus node)
-          (.setSelectionRange node 0 (.. node -value -length)))))
+          (.setSelectionRange node (.. node -value -length) (.. node -value -length)))
+        (om/set-state! owner :needs-focus nil)))
     om/IRender
     (render [_]
       (let [class (cond-> ""
