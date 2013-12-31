@@ -1,5 +1,5 @@
 (ns todomvc.app
-  (:require-macros [cljs.core.async.macros :refer [go alt!]]
+  (:require-macros [cljs.core.async.macros :refer [go]]
                    [secretary.macros :refer [defroute]])
   (:require [goog.events :as events]
             [cljs.core.async :refer [put! <! chan]]
