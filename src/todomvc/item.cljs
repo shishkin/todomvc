@@ -1,6 +1,6 @@
 (ns todomvc.item
   (:require [cljs.core.async :refer [>! put! timeout]]
-            [todomvc.utils :refer [now]]
+            [todomvc.utils :refer [now hidden]]
             [clojure.string :as string]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]))
@@ -11,7 +11,10 @@
 ;; =============================================================================
 ;; Todo Item
 
-(defn handle-submit [e todo {:keys [owner comm]}]
+;; -----------------------------------------------------------------------------
+;; Event Handlers
+
+(defn submit [e todo owner comm]
   (when-let [edit-text (om/get-state owner :edit-text)]
     (if-not (string/blank? (.trim edit-text))
       (do
@@ -20,34 +23,32 @@
       (put! comm [:destroy todo])))
   false)
 
-(defn handle-edit [e todo {:keys [owner comm]}]
-  ;; NOTE: we have to grab the node here? - David
+(defn edit [e todo owner comm]
   (let [node (om/get-node owner "editField")]
     (put! comm [:edit todo])
-    (om/set-state! owner :init-edit true)
-    (om/read todo :title
-      (fn [title]
-        (om/set-state! owner :edit-text title)))))
+    (doto owner
+      (om/set-state! :init-edit true)
+      (om/set-state! :edit-text (:title todo)))))
 
-(defn handle-key-down [e todo {:keys [owner] :as opts}]
-  (let [kc (.-keyCode e)]
-    (if (identical? kc ESCAPE_KEY)
-      (do
-        (om/read todo :title
-          (fn [title]
-            (om/set-state! owner :edit-text title)))
-        (put! (:comm opts) [:cancel todo]))
-      (if (identical? kc ENTER_KEY)
-        (handle-submit e todo opts)))))
+(defn key-down [e todo owner comm]
+  (condp == (.-keyCode e)
+    ESCAPE_KEY (do
+                 (om/set-state! owner :edit-text (:title todo))
+                 (put! comm [:cancel todo]))
+    ENTER_KEY  (submit e todo owner comm)
+    nil))
 
-(defn handle-change [e todo owner]
+(defn change [e todo owner]
   (om/set-state! owner :edit-text (.. e -target -value)))
 
-(defn todo-item [{:keys [id title editing completed] :as todo} owner {:keys [comm]}]
+;; -----------------------------------------------------------------------------
+;; Todo Item
+
+(defn todo-item [todo owner {:keys [comm]}]
   (reify
     om/IInitState
     (init-state [_]
-      {:edit-text title})
+      {:edit-text (:title todo)})
     om/IDidUpdate
     (did-update [_ _ _ _]
       (when (om/get-state owner :init-edit)
@@ -57,23 +58,24 @@
           (.setSelectionRange node 0 (.. node -value -length)))))
     om/IRender
     (render [_]
-      (let [m {:owner owner :comm comm}
-            classes (cond-> []
-                      completed (conj "completed")
-                      editing   (conj "editing"))]
-        (dom/li #js {:className (string/join " " classes)
-                     :style (if (true? (:hidden todo))
-                              #js {:display "none"}
-                              #js {})}
+      (let [class (cond-> ""
+                    (:completed todo) (str "completed")
+                    (:editing todo)   (str "editing"))]
+        (dom/li #js {:className class :style (hidden (:hidden todo))}
           (dom/div #js {:className "view"}
-            (dom/input #js {:className "toggle" :type "checkbox"
-                            :checked (and completed "checked")
-                            :onChange (fn [_] (om/transact! todo :completed #(not %)))})
-            (dom/label #js {:onDoubleClick #(handle-edit % todo m)} (:title todo))
-            (dom/button #js {:className "destroy"
-                             :onClick (fn [_] (put! comm [:destroy todo]))}))
-          (dom/input #js {:ref "editField" :className "edit"
-                          :value (om/get-state owner :edit-text)
-                          :onBlur #(handle-submit % todo m)
-                          :onChange #(handle-change % todo owner)
-                          :onKeyDown #(handle-key-down % todo m)}))))))
+            (dom/input
+              #js {:className "toggle" :type "checkbox"
+                   :checked (and (:completed todo) "checked")
+                   :onChange (fn [_] (om/transact! todo :completed #(not %)))})
+            (dom/label
+              #js {:onDoubleClick (om/bind edit todo owner comm)}
+              (:title todo))
+            (dom/button
+              #js {:className "destroy"
+                   :onClick (fn [_] (put! comm [:destroy todo]))}))
+          (dom/input
+            #js {:ref "editField" :className "edit"
+                 :value (om/get-state owner :edit-text)
+                 :onBlur (om/bind submit todo owner comm)
+                 :onChange (om/bind change todo owner comm)
+                 :onKeyDown (om/bind key-down todo owner comm)}))))))

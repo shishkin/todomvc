@@ -6,7 +6,7 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [secretary.core :as secretary]
-            [todomvc.utils :refer [pluralize now guid store]]
+            [todomvc.utils :refer [pluralize now guid store hidden]]
             [clojure.string :as string]
             [todomvc.item :as item])
   (:import [goog History]
@@ -45,13 +45,11 @@
 
 (defn main [{:keys [showing todos] :as app} owner opts]
   (om/component
-    (dom/section #js {:id "main"
-                      :style (if (empty? todos)
-                               #js {:display "none"}
-                               #js {})}
-      (dom/input #js {:id "toggle-all" :type "checkbox"
-                      :onChange #(toggle-all % app)
-                      :checked (every? :completed todos)})
+    (dom/section #js {:id "main" :style (hidden (empty? todos))}
+      (dom/input
+        #js {:id "toggle-all" :type "checkbox"
+             :onChange #(toggle-all % app)
+             :checked (every? :completed todos)})
       (dom/ul #js {:id "todo-list"}
         (om/build-all item/todo-item todos
           {:opts opts :key :id
@@ -62,20 +60,21 @@
                    (not (visible? todo showing))
                    (assoc :hidden true)))})))))
 
-(defn footer [{:keys [showing todos]} owner opts]
+(defn make-clear-button [completed comm]
+  (when (pos? completed)
+    (dom/button
+      #js {:id "clear-completed"
+           :onClick #(put! comm [:clear (now)])}
+      (str "Clear completed (" completed ")"))))
+
+(defn footer [app owner opts]
   (let [{:keys [count completed comm]} opts
-        clear-button (when (pos? completed)
-                       (dom/button
-                         #js {:id "clear-completed"
-                              :onClick #(put! comm [:clear (now)])}
-                         (str "Clear completed (" completed ")")))
+        clear-button (make-clear-button completed comm)
         sel (-> (zipmap [:all :active :completed] (repeat ""))
-                (assoc showing "selected"))]
+                (assoc (:showing app) "selected"))]
     (om/component
-      (dom/footer #js {:id "footer"
-                       :style (if (empty? todos)
-                                #js {:display "none"}
-                                #js {})}
+      (dom/footer
+        #js {:id "footer" :style (hidden (empty? (:todos app)))}
         (dom/span #js {:id "todo-count"}
           (dom/strong nil count)
           (str " " (pluralize count "item") " left"))
@@ -97,7 +96,7 @@
       (fn [todos] (into [] (map #(assoc % :completed checked) todos))))))
 
 (defn handle-new-todo-keydown [e app owner]
-  (when (identical? (.-which e) ENTER_KEY)
+  (when (== (.-which e) ENTER_KEY)
     (let [new-field (om/get-node owner "newField")]
       (when-not (string/blank? (.. new-field -value trim))
         (om/transact! app :todos conj
@@ -107,16 +106,12 @@
         (set! (.-value new-field) "")))
     false))
 
-(defn destroy-todo [app todo]
-  (om/read todo :id
-    (fn [id]
-      (om/transact! app :todos
-        (fn [todos] (into [] (remove #(= (:id %) id) todos)))))))
+(defn destroy-todo [app {:keys [id]}]
+  (om/transact! app :todos
+    (fn [todos] (into [] (remove #(= (:id %) id) todos)))))
 
-(defn edit-todo [app todo]
-  (om/read todo :id
-    (fn [id]
-      (om/update! app assoc :editing id))))
+(defn edit-todo [app {:keys [id]}]
+  (om/update! app assoc :editing id))
 
 (defn save-todos [app]
   (om/update! app dissoc :editing))
@@ -128,10 +123,10 @@
   (om/transact! app :todos
     (fn [todos] (into [] (remove :completed todos)))))
 
-(defn handle-event [app [type todo :as e]]
+(defn handle-event [type app val]
   (case type
-    :destroy (destroy-todo app todo)
-    :edit    (edit-todo app todo)
+    :destroy (destroy-todo app val)
+    :edit    (edit-todo app val)
     :save    (save-todos app)
     :clear   (clear-completed app)
     :cancel  (cancel-action app)
@@ -143,12 +138,15 @@
   (reify
     om/IWillMount
     (will-mount [_]
-      ;; TODO: solve the problem of app not being
-      ;; "up-to-date" here - David
       (let [comm (chan)]
         (om/set-state! owner :comm comm)
         (go (while true
-              (handle-event app (<! comm))))))
+              (let [[type value] (<! comm)]
+                (if (#{:destroy :edit} type) 
+                  (om/read value
+                    (fn [todo]
+                      (handle-event type app todo)))
+                  (handle-event type app value)))))))
     om/IWillUpdate
     (will-update [_ _ _]
       (set! render-start (now)))

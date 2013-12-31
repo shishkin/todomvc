@@ -22,3 +22,8 @@
         (if-not (nil? s)
           (reader/read-string s)
           [])))))
+
+(defn hidden [^boolean is-hidden]
+  (if is-hidden
+    #js {:display "none"}
+    #js {}))
