@@ -54,7 +54,7 @@
                :checked (every? :completed todos)})
         (dom/ul #js {:id "todo-list"}
           (om/build-all item/todo-item todos
-            {:state {:comm comm}
+            {:init-state {:comm comm}
              :key :id
              :fn (fn [todo]
                    (cond-> todo
@@ -160,8 +160,12 @@
               #js {:ref "newField" :id "new-todo"
                    :placeholder "What needs to be done?"
                    :onKeyDown #(handle-new-todo-keydown % app owner)})
-            (om/build main app {:state {:name "main" :comm comm :editing (:editing app)}})
-            (om/build footer app {:state {:count active :completed completed :comm comm}})))))))
+            (om/build main app
+              {:init-state {:comm comm}
+               :state {:editing (:editing app)}})
+            (om/build footer app
+              {:init-state {:comm comm}
+               :state {:count active :completed completed}})))))))
 
 (om/root app-state todo-app (.getElementById js/document "todoapp"))
 
