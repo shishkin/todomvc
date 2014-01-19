@@ -44,7 +44,7 @@
 ;; -----------------------------------------------------------------------------
 ;; Todo Item
 
-(defn todo-item [todo owner {:keys [comm]}]
+(defn todo-item [todo owner]
   (reify
     om/IInitState
     (init-state [_]
@@ -58,8 +58,8 @@
           (.focus node)
           (.setSelectionRange node len len))
         (om/set-state! owner :needs-focus nil)))
-    om/IRender
-    (render [_]
+    om/IRenderState
+    (render-state [_ {:keys [comm] :as state}]
       (let [class (cond-> ""
                     (:completed todo) (str "completed")
                     (:editing todo)   (str "editing"))]
