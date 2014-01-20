@@ -27,7 +27,7 @@
 
 (def history (History.))
 
-(events/listen history EventType/NAVIGATE
+(events/listen history EventType.NAVIGATE
   (fn [e] (secretary/dispatch! (.-token e))))
 
 (.setEnabled history true)
