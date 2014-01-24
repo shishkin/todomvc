@@ -137,11 +137,7 @@
         (om/set-state! owner :comm comm)
         (go (while true
               (let [[type value] (<! comm)]
-                (if (#{:destroy :edit} type) 
-                  (om/read value
-                    (fn [todo]
-                      (handle-event type app todo)))
-                  (handle-event type app value)))))))
+                (handle-event type app value))))))
     om/IWillUpdate
     (will-update [_ _ _] (set! render-start (now)))
     om/IDidUpdate

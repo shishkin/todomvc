@@ -19,12 +19,13 @@
     (if-not (string/blank? (.trim edit-text))
       (do
         (om/update! todo assoc :title edit-text)
-        (put! comm [:save todo]))
-      (put! comm [:destroy todo])))
+        (put! comm [:save @todo]))
+      (put! comm [:destroy @todo])))
   false)
 
 (defn edit [e todo owner comm]
-  (let [node (om/get-node owner "editField")]
+  (let [todo @todo
+        node (om/get-node owner "editField")]
     (put! comm [:edit todo])
     (doto owner
       (om/set-state! :needs-focus true)
@@ -34,7 +35,7 @@
   (condp == (.-keyCode e)
     ESCAPE_KEY (do
                  (om/set-state! owner :edit-text (:title todo))
-                 (put! comm [:cancel todo]))
+                 (put! comm [:cancel @todo]))
     ENTER_KEY  (submit e todo owner comm)
     nil))
 
@@ -70,14 +71,14 @@
                    :checked (and (:completed todo) "checked")
                    :onChange (fn [_] (om/transact! todo :completed #(not %)))})
             (dom/label
-              #js {:onDoubleClick (om/bind edit todo owner comm)}
+              #js {:onDoubleClick #(edit % todo owner comm)}
               (:title todo))
             (dom/button
               #js {:className "destroy"
-                   :onClick (fn [_] (put! comm [:destroy todo]))}))
+                   :onClick (fn [_] (put! comm [:destroy @todo]))}))
           (dom/input
             #js {:ref "editField" :className "edit"
                  :value (om/get-state owner :edit-text)
-                 :onBlur (om/bind submit todo owner comm)
-                 :onChange (om/bind change todo owner comm)
-                 :onKeyDown (om/bind key-down todo owner comm)}))))))
+                 :onBlur #(submit % todo owner comm)
+                 :onChange #(change % todo owner comm)
+                 :onKeyDown #(key-down % todo owner comm)}))))))
