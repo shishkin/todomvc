@@ -80,5 +80,5 @@
             #js {:ref "editField" :className "edit"
                  :value (om/get-state owner :edit-text)
                  :onBlur #(submit % todo owner comm)
-                 :onChange #(change % todo owner comm)
+                 :onChange #(change % todo owner)
                  :onKeyDown #(key-down % todo owner comm)}))))))
