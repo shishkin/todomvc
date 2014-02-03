@@ -8,7 +8,7 @@
                  [org.clojure/clojurescript "0.0-2138"]
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
                  [secretary "0.4.0"]
-                 [om "0.3.0"]]
+                 [om "0.3.5"]]
 
   :plugins [[lein-cljsbuild "1.0.1"]]
 
@@ -31,6 +31,4 @@
                 :pretty-print false
                 :output-wrapper false
                 :preamble ["react/react.min.js"]
-                :externs ["react/externs/react.js"]
-                :closure-warnings
-                {:non-standard-jsdoc :off}}}]})
+                :externs ["react/externs/react.js"]}}]})

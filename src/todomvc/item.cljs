@@ -33,9 +33,9 @@
 
 (defn key-down [e todo owner comm]
   (condp == (.-keyCode e)
-    ESCAPE_KEY (do
+    ESCAPE_KEY (let [todo @todo]
                  (om/set-state! owner :edit-text (:title todo))
-                 (put! comm [:cancel @todo]))
+                 (put! comm [:cancel todo]))
     ENTER_KEY  (submit e todo owner comm)
     nil))
 

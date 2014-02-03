@@ -52,7 +52,7 @@
           #js {:id "toggle-all" :type "checkbox"
                :onChange #(toggle-all % app)
                :checked (every? :completed todos)})
-        (dom/ul #js {:id "todo-list"}
+        (apply dom/ul #js {:id "todo-list"}
           (om/build-all item/todo-item todos
             {:init-state {:comm comm}
              :key :id
@@ -91,7 +91,7 @@
 (defn toggle-all [e app]
   (let [checked (.. e -target -checked)]
     (om/transact! app :todos
-      (fn [todos] (into [] (map #(assoc % :completed checked) todos))))))
+      (fn [todos] (vec (map #(assoc % :completed checked) todos))))))
 
 (defn handle-new-todo-keydown [e app owner]
   (when (== (.-which e) ENTER_KEY)
