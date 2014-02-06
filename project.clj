@@ -8,9 +8,9 @@
                  [org.clojure/clojurescript "0.0-2138"]
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
                  [secretary "0.4.0"]
-                 [om "0.3.5"]]
+                 [om "0.3.6"]]
 
-  :plugins [[lein-cljsbuild "1.0.1"]]
+  :plugins [[lein-cljsbuild "1.0.2"]]
 
   :source-paths ["src"]
 
